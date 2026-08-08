@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+venv/
+__pycache__/
+*.pyc
+*.egg-info/
+
+# Build output
+dist/
+build/
+coverage/
+.vite/
+
+# Environment files (templates like .env.example are kept)
+.env
+.env.local
+.env.*.local
+
+# Test/tool caches
+.pytest_cache/
+.coverage
+
+# Editor/OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Local tooling config (not part of the app)
+.claude/
