@@ -1,0 +1,46 @@
+import { Router } from 'express';
+import healthRoutes from './health.routes';
+import authRoutes from './auth.routes';
+import roleRoutes from './role.routes';
+import employeeRoutes from './employee.routes';
+import departmentRoutes from './department.routes';
+import positionRoutes from './position.routes';
+import certificationRoutes from './certification.routes';
+import scheduleRoutes from './schedule.routes';
+import shiftRoutes from './shift.routes';
+import attendanceRoutes from './attendance.routes';
+import leaveRoutes from './leave.routes';
+import shiftSwapRoutes from './shiftSwap.routes';
+import notificationRoutes from './notification.routes';
+import announcementRoutes from './announcement.routes';
+import messageRoutes from './message.routes';
+import payrollRoutes from './payroll.routes';
+import reportRoutes from './report.routes';
+import systemSettingRoutes from './systemSetting.routes';
+import auditRoutes from './audit.routes';
+import documentRoutes from './document.routes';
+
+const router = Router();
+
+router.use('/health', healthRoutes);
+router.use('/auth', authRoutes);
+router.use('/roles', roleRoutes);
+router.use('/employees', employeeRoutes);
+router.use('/departments', departmentRoutes);
+router.use('/positions', positionRoutes);
+router.use('/certifications', certificationRoutes);
+router.use('/schedules', scheduleRoutes);
+router.use('/shifts', shiftRoutes);
+router.use('/attendance', attendanceRoutes);
+router.use('/leave', leaveRoutes);
+router.use('/shift-swaps', shiftSwapRoutes);
+router.use('/notifications', notificationRoutes);
+router.use('/announcements', announcementRoutes);
+router.use('/messages', messageRoutes);
+router.use('/payroll', payrollRoutes);
+router.use('/reports', reportRoutes);
+router.use('/settings', systemSettingRoutes);
+router.use('/audit-logs', auditRoutes);
+router.use('/documents', documentRoutes);
+
+export default router;
