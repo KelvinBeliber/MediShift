@@ -1,0 +1,286 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans:
+    'Manrope Variable', 'Manrope', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Brand primitives. Sampled from the wordmark and logo stroke interiors —
+     see DESIGN.md. `brand-teal` is 3.7:1 on white and is an identity colour
+     only; `brand-teal-deep` (5.1:1) is the one that carries text and fills. */
+  --color-brand-navy: oklch(0.3052 0.1045 256.46);
+  --color-brand-navy-700: oklch(0.3742 0.1191 256.32);
+  --color-brand-teal: oklch(0.6075 0.1029 196.48);
+  --color-brand-teal-deep: oklch(0.5289 0.0893 196.81);
+  --color-brand-teal-press: oklch(0.4572 0.077 198.44);
+  --color-brand-slate: oklch(0.4189 0.0177 245.05);
+  --color-brand-mist: oklch(0.9365 0.0229 266.91);
+  --color-brand-mist-50: oklch(0.9756 0.0086 264.52);
+
+  /* Morning / afternoon / night, in the logo ring's own order. */
+  --color-shift-morning: oklch(0.6075 0.1029 196.48);
+  --color-shift-afternoon: oklch(0.6009 0.1245 237.02);
+  --color-shift-night: oklch(0.5594 0.1763 283.69);
+
+  /* Overlays only. Tinted with the brand navy so shadows read cool. */
+  --shadow-overlay:
+    0 12px 32px -8px oklch(0.3052 0.1045 256.46 / 0.18),
+    0 2px 6px -2px oklch(0.3052 0.1045 256.46 / 0.1);
+
+  /* Data-surface elevation.
+   *
+   * Added on screen 6. The original system was flat everywhere, which on a
+   * metrics screen read as unstyled text rather than as restraint — panels had
+   * nothing separating them from the page but a hairline. These are the same
+   * navy tint as `--shadow-overlay` at much lower energy: enough to seat a card
+   * on the page, not enough to make a dense grid noisy.
+   *
+   * `card` is the resting state, `card-hover` the interactive one, `focal` the
+   * single anchor panel per screen. */
+  --shadow-card:
+    0 1px 2px -1px oklch(0.3052 0.1045 256.46 / 0.08),
+    0 4px 12px -4px oklch(0.3052 0.1045 256.46 / 0.08);
+  --shadow-card-hover:
+    0 2px 4px -2px oklch(0.3052 0.1045 256.46 / 0.1),
+    0 12px 24px -8px oklch(0.3052 0.1045 256.46 / 0.14);
+  --shadow-focal:
+    0 2px 4px -2px oklch(0.3052 0.1045 256.46 / 0.08),
+    0 16px 40px -12px oklch(0.3052 0.1045 256.46 / 0.16);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-chart-scale-pattern-color: var(--chart-scale-pattern-color);
+  --color-chart-scale-05: var(--chart-scale-05);
+  --color-chart-scale-04: var(--chart-scale-04);
+  --color-chart-scale-03: var(--chart-scale-03);
+  --color-chart-scale-02: var(--chart-scale-02);
+  --color-chart-scale-01: var(--chart-scale-01);
+  --color-chart-label: var(--chart-label);
+  --color-chart-marker-foreground: var(--chart-marker-foreground);
+  --color-chart-marker-border: var(--chart-marker-border);
+  --color-chart-marker-background: var(--chart-marker-background);
+  --color-chart-tooltip-muted: var(--chart-tooltip-muted);
+  --color-chart-tooltip-foreground: var(--chart-tooltip-foreground);
+  --color-chart-tooltip-background: var(--chart-tooltip-background);
+  --chart-brush-border: var(--chart-brush-border);
+  --color-chart-grid: var(--chart-grid);
+  --color-chart-crosshair: var(--chart-crosshair);
+  --chart-line-secondary: var(--chart-line-secondary);
+  --chart-line-primary: var(--chart-line-primary);
+  --color-chart-foreground-muted: var(--chart-foreground-muted);
+  --color-chart-foreground: var(--chart-foreground);
+  --color-chart-background: var(--chart-background);
+}
+
+:root {
+  --radius: 0.625rem;
+  /* Paper: a half-step off pure white, so true-white cards read as lifted
+     without needing a shadow. See the Flat-At-Rest Rule in DESIGN.md. */
+  --background: oklch(0.9936 0.0017 247.84);
+  --foreground: oklch(0.3052 0.1045 256.46);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.3052 0.1045 256.46);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.3052 0.1045 256.46);
+  --primary: oklch(0.5289 0.0893 196.81);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.9756 0.0086 264.52);
+  --secondary-foreground: oklch(0.3052 0.1045 256.46);
+  --muted: oklch(0.9756 0.0086 264.52);
+  --muted-foreground: oklch(0.5052 0.0234 250.59);
+  --accent: oklch(0.9365 0.0229 266.91);
+  --accent-foreground: oklch(0.3052 0.1045 256.46);
+  --destructive: oklch(0.5013 0.1783 28.7);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.9142 0.0151 260.73);
+  --input: oklch(0.9142 0.0151 260.73);
+  --ring: oklch(0.5289 0.0893 196.81);
+  /* Categorical series follow the shift scale first, then extend into the
+     navy. Revisit properly on screen 22 (Reports) when real series exist. */
+  --chart-1: oklch(0.6075 0.1029 196.48);
+  --chart-2: oklch(0.6009 0.1245 237.02);
+  --chart-3: oklch(0.5594 0.1763 283.69);
+  --chart-4: oklch(0.3742 0.1191 256.32);
+  --chart-5: oklch(0.7529 0.0783 196.7);
+  /* The navigation rail is the one inverted surface in the product.
+   *
+   * Ground is Chart Navy — the darkest colour in the system and the exact navy
+   * of the "Medi" in the wordmark, so the rail reads as the brand rather than as
+   * a themed panel. White on it is 13.5:1.
+   *
+   * The selected item takes `brand-teal-deep`, which DESIGN.md already lists as
+   * the colour for "selected state" alongside button fills and focus rings; at
+   * 5.1:1 behind white text it passes AA. Hover is the lighter Navy 700, so
+   * hover and selected are never confusable. */
+  --sidebar: oklch(0.3052 0.1045 256.46);
+  --sidebar-foreground: oklch(1 0 0);
+  --sidebar-primary: oklch(0.5289 0.0893 196.81);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.3742 0.1191 256.32);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(0.3742 0.1191 256.32);
+  --sidebar-ring: oklch(0.6075 0.1029 196.48);
+  --chart-background: oklch(1 0 0);
+  --chart-foreground: oklch(0.145 0.004 285);
+  --chart-foreground-muted: oklch(0.55 0.014 260);
+  --chart-line-primary: var(--chart-1);
+  --chart-line-secondary: var(--chart-2);
+  --chart-crosshair: oklch(0.4 0.1828 274.34);
+  --chart-grid: oklch(0.9 0 0);
+  --chart-brush-border: var(--chart-grid);
+  --chart-tooltip-background: oklch(0.21 0.006 285 / 0.8);
+  --chart-tooltip-foreground: oklch(0.985 0 0);
+  --chart-tooltip-muted: oklch(0.65 0.01 260);
+  --chart-marker-background: oklch(0.97 0.005 260);
+  --chart-marker-border: oklch(0.85 0.01 260);
+  --chart-marker-foreground: oklch(0.3 0.01 260);
+  --chart-label: oklch(0.45 0.01 260);
+  --chart-scale-01: oklch(0.98 0.003 106);
+  --chart-scale-02: oklch(0.92 0.008 106);
+  --chart-scale-03: oklch(0.82 0.015 106);
+  --chart-scale-04: oklch(0.68 0.02 106);
+  --chart-scale-05: oklch(0.55 0.025 106);
+  --chart-scale-pattern-color: oklch(0.96 0.005 106);
+}
+
+/* No `.dark` block, deliberately.
+ *
+ * MediShift is light-only for now (DESIGN.md records the decision and the use
+ * scene behind it). What used to sit here was the stock shadcn greyscale dark
+ * palette, which contradicts every brand token above: it turns `--primary`
+ * near-white, `--chart-1` purple, and erases the morning/afternoon/night scale
+ * entirely. Leaving it in place would mean the first person to add a theme
+ * toggle silently ships a different product.
+ *
+ * When dark mode is built, it needs its own art direction — a navy world, not
+ * an inverted grey one — plus a treatment for the light brand poster on the
+ * auth screens. `@custom-variant dark` above stays so vendored `dark:`
+ * utilities keep compiling; they simply never activate. */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    /* cv11 disambiguates the single-storey `l` from `1` and `I` — worth having
+       on a product full of employee IDs and 24-hour clock times. */
+    font-feature-settings: 'cv11' 1;
+  }
+
+  /* The No-Halo Rule: focus is a 2px ring at 2px offset, never a glow. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
+
+  /* Times, durations, hour counts, and IDs must not shift as they tick. */
+  time,
+  [data-numeric] {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/**
+ * FullCalendar (Schedule Calendar, screen 14) restyled onto the ward-clock
+ * system instead of its own defaults — the stock look is a generic blue
+ * calendar-app chrome that doesn't belong next to Panel/StatCard. The header
+ * toolbar is disabled in favour of our own Button-built controls, so this
+ * block only needs to cover the grid itself: hairline borders, Paper ground,
+ * no shadows, and the brand teal for "today" rather than FullCalendar's blue.
+ */
+.fc {
+  --fc-border-color: var(--border);
+  --fc-page-bg-color: var(--card);
+  --fc-neutral-bg-color: var(--secondary);
+  --fc-today-bg-color: var(--color-brand-mist-50);
+  --fc-event-selected-overlay-color: transparent;
+  font-family: var(--font-sans);
+}
+.fc .fc-col-header-cell {
+  background: var(--secondary);
+  padding-block: 0.5rem;
+}
+.fc .fc-col-header-cell-cushion {
+  padding: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.fc .fc-daygrid-day-number {
+  padding: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+.fc .fc-day-today .fc-daygrid-day-number {
+  font-weight: 700;
+  color: var(--color-brand-teal-deep);
+}
+.fc .fc-daygrid-day-frame {
+  min-height: 6.5rem;
+}
+.fc .fc-daygrid-event-harness {
+  margin-top: 2px;
+}
+.fc .fc-event {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+.fc .fc-daygrid-more-link {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--color-brand-teal-deep);
+}
+.fc .fc-scrollgrid {
+  border-radius: 0;
+}
+.fc-theme-standard td,
+.fc-theme-standard th {
+  border-color: var(--border);
+}
