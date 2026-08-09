@@ -1238,20 +1238,20 @@ export function ScheduleDetailPage() {
               return (
                 <div
                   className={cn(
-                    'flex items-center gap-1.5 overflow-hidden rounded-md px-1.5 py-1',
+                    'flex items-center gap-2 overflow-hidden rounded-md px-2 py-1.5',
                     style.bg,
                   )}
                 >
-                  <span className={cn('size-1.5 shrink-0 rounded-full', style.dot)} />
-                  <span className="shrink-0 text-[0.6875rem] font-semibold tabular-nums">
+                  <span className={cn('size-2 shrink-0 rounded-full', style.dot)} />
+                  <span className={cn('shrink-0 text-xs font-semibold tabular-nums', style.text)}>
                     {shift.startTime}
                   </span>
-                  <span className="truncate text-[0.6875rem] text-muted-foreground capitalize">
+                  <span className="truncate text-xs text-muted-foreground capitalize">
                     {shift.shiftType.replace('_', ' ')}
                   </span>
                   <span
                     className={cn(
-                      'ml-auto shrink-0 text-[0.625rem] font-bold tabular-nums',
+                      'ml-auto shrink-0 text-xs font-bold tabular-nums',
                       short ? 'text-destructive' : 'text-muted-foreground',
                     )}
                   >
