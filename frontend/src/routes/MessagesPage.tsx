@@ -210,7 +210,7 @@ export function MessagesPage() {
   )
   const seenByOther =
     active?.type === 'direct' && lastGroup?.mine
-      ? lastGroup.messages[lastGroup.messages.length - 1].readBy.some((r) => r.user === active.id)
+      ? (lastGroup.messages[lastGroup.messages.length - 1]?.readBy.some((r) => r.user === active.id) ?? false)
       : false
 
   // Mark anything from someone else as read once the thread is open and loaded.
@@ -580,14 +580,14 @@ export function MessagesPage() {
                                     <MessageAvatar>
                                       <Avatar size="sm">
                                         <AvatarFallback>
-                                          {initials(senderLabel(item.messages[0]))}
+                                          {initials(senderLabel(item.messages[0]!))}
                                         </AvatarFallback>
                                       </Avatar>
                                     </MessageAvatar>
                                   )}
                                   <MessageContent>
                                     {!item.mine && active.type === 'department' && (
-                                      <MessageHeader>{senderLabel(item.messages[0])}</MessageHeader>
+                                      <MessageHeader>{senderLabel(item.messages[0]!)}</MessageHeader>
                                     )}
                                     {item.messages.map((m) => (
                                       <Bubble key={m.id} variant={item.mine ? 'default' : 'secondary'} align={item.mine ? 'end' : 'start'}>
@@ -595,7 +595,7 @@ export function MessagesPage() {
                                       </Bubble>
                                     ))}
                                     <MessageFooter>
-                                      {formatTime(item.messages[item.messages.length - 1].createdAt)}
+                                      {formatTime(item.messages[item.messages.length - 1]!.createdAt)}
                                       {item.mine && active.type === 'direct' && item.key === lastGroup?.key && seenByOther && (
                                         <span className="ml-1">· Seen</span>
                                       )}

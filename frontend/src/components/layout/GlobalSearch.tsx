@@ -107,9 +107,9 @@ export function GlobalSearch({ sections }: GlobalSearchProps) {
           <CommandEmpty>
             {isFetching ? 'Searching…' : 'No results found.'}
           </CommandEmpty>
-          {canViewEmployees && debouncedQuery.trim().length > 0 && employeeResults && employeeResults.data.length > 0 && (
+          {canViewEmployees && debouncedQuery.trim().length > 0 && employeeResults && employeeResults.items.length > 0 && (
             <CommandGroup heading="Employees">
-              {employeeResults.data.map((employee) => (
+              {employeeResults.items.map((employee) => (
                 <CommandItem
                   key={employee.id}
                   value={`employee-${employee.id}-${employee.firstName}-${employee.lastName}`}
