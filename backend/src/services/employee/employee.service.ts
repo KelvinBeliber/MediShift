@@ -32,6 +32,10 @@ export async function listEmployees(filters: EmployeeFilters, pagination: Pagina
   return { docs, meta: buildPaginationMeta(pagination.page, pagination.limit, total) };
 }
 
+export async function listDirectory(): Promise<IEmployee[]> {
+  return employeeRepository.searchDirectory();
+}
+
 export async function getEmployee(id: string, includeSalary = false): Promise<IEmployee> {
   const employee = await employeeRepository.findById(id, includeSalary);
   if (!employee) throw ApiError.notFound('Employee not found');

@@ -1,11 +1,20 @@
 import { del, get, getPaginated, post, put } from '@/lib/api/client'
 import { api } from '@/lib/api/client'
 import type { Paginated } from '@/lib/api/types'
-import type { Employee, EmployeeDocument, EmployeeInput, EmployeeListFilters, UpdateOwnProfileInput } from './types'
+import type {
+  DirectoryEmployee,
+  Employee,
+  EmployeeDocument,
+  EmployeeInput,
+  EmployeeListFilters,
+  UpdateOwnProfileInput,
+} from './types'
 
 export const employeesApi = {
   list: (filters: EmployeeListFilters) =>
     getPaginated<Employee>('/employees', { params: filters }),
+
+  directory: () => get<DirectoryEmployee[]>('/employees/directory'),
 
   get: (id: string) => get<Employee>(`/employees/${id}`),
 

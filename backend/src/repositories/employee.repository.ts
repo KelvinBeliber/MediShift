@@ -75,4 +75,18 @@ export function countByDepartment(departmentId: string) {
   return Employee.countDocuments({ department: departmentId, status: 'active' });
 }
 
+/**
+ * Name/department only, for the messaging "pick a colleague" picker — no
+ * address, phone, emergency contact, or other HR fields. Intentionally not
+ * gated by employee:view, so it must never select more than this.
+ */
+export function searchDirectory() {
+  return Employee.find({ status: 'active', user: { $ne: null } })
+    .select('firstName lastName user department position')
+    .populate('department', 'name')
+    .populate('position', 'title')
+    .sort({ firstName: 1, lastName: 1 })
+    .limit(500);
+}
+
 export { POPULATE_FIELDS };

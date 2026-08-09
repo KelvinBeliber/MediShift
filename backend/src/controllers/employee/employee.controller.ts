@@ -27,6 +27,11 @@ export const getEmployees = asyncHandler(async (req: Request, res: Response) => 
   sendSuccess(res, 200, 'Employees retrieved', docs, meta);
 });
 
+export const getDirectory = asyncHandler(async (_req: Request, res: Response) => {
+  const employees = await employeeService.listDirectory();
+  sendSuccess(res, 200, 'Directory retrieved', employees);
+});
+
 export const getOwnProfile = asyncHandler(async (req: Request, res: Response) => {
   if (!req.user?.employeeId) {
     throw ApiError.badRequest('No employee profile is linked to this account');

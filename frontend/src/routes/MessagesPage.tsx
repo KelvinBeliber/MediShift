@@ -153,7 +153,6 @@ export function MessagesPage() {
   const user = useCurrentUser()
   const queryClient = useQueryClient()
   const canSend = usePermission('message:send')
-  const canBrowseEmployees = usePermission('employee:view')
 
   const [active, setActive] = useState<Conversation | null>(null)
   const [directContacts, setDirectContacts] = useState<Map<string, string>>(new Map())
@@ -170,10 +169,10 @@ export function MessagesPage() {
     queryFn: () => employeesApi.me(),
     retry: false,
   })
-  const { data: employeeData } = useQuery({
-    queryKey: ['employees', 'for-messages'],
-    queryFn: () => employeesApi.list({ limit: 100 }),
-    enabled: canBrowseEmployees,
+  const { data: directory } = useQuery({
+    queryKey: ['employees', 'directory', 'for-messages'],
+    queryFn: () => employeesApi.directory(),
+    enabled: canSend,
   })
   const { data: inbox } = useQuery({
     queryKey: ['messages', 'inbox'],
@@ -182,7 +181,7 @@ export function MessagesPage() {
 
   const myDepartment = me?.department
 
-  const contactable = (employeeData?.items ?? []).filter((e) => e.user && e.user !== user?.id)
+  const contactable = (directory ?? []).filter((e) => e.user && e.user !== user?.id)
   const employeeNameByUser = useMemo(
     () => new Map(contactable.map((e) => [e.user!, `${e.firstName} ${e.lastName}`])),
     [contactable],
@@ -416,7 +415,7 @@ export function MessagesPage() {
 
           <div className="mt-4 mb-1.5 flex items-center justify-between px-2.5">
             <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Direct</span>
-            {canBrowseEmployees && (
+            {canSend && (
               <button
                 type="button"
                 onClick={() => setPickerOpen((v) => !v)}
@@ -458,7 +457,7 @@ export function MessagesPage() {
 
           {contacts.length === 0 ? (
             <p className="px-2.5 py-2 text-sm text-muted-foreground">
-              {canBrowseEmployees ? 'Start a new conversation above.' : 'Conversations you open appear here.'}
+              {canSend ? 'Start a new conversation above.' : 'Conversations you open appear here.'}
             </p>
           ) : (
             contacts.map(({ id, label, unreadCount }) => (

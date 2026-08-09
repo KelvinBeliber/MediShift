@@ -25,6 +25,10 @@ router.use(authenticate);
 router.get('/me', employeeController.getOwnProfile);
 router.put('/me', validateRequest({ body: updateOwnProfileSchema }), employeeController.updateOwnProfile);
 
+// Name/department only, no employee:view required — every authenticated user
+// can look up a colleague to start a direct message. See searchDirectory().
+router.get('/directory', employeeController.getDirectory);
+
 router.get(
   '/',
   authorize(PERMISSIONS.EMPLOYEE_VIEW),

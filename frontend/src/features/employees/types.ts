@@ -71,6 +71,16 @@ export const DOCUMENT_TYPES = [
   'other',
 ] as const
 
+/** `GET /employees/directory` — name/department only, open to any authenticated user. See Messages' "New" picker. */
+export interface DirectoryEmployee {
+  id: string
+  user?: string
+  firstName: string
+  lastName: string
+  department?: { id: string; name: string } | null
+  position?: { id: string; title: string } | null
+}
+
 export interface EmployeeListFilters {
   search?: string
   department?: string
