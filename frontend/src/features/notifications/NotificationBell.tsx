@@ -56,7 +56,11 @@ export function NotificationBell() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative text-topbar-foreground hover:bg-topbar-accent hover:text-topbar-foreground"
+        >
           <BellIcon />
           {unreadCount > 0 && (
             <Badge className="absolute -top-1 -right-1 h-4.5 min-w-4.5 justify-center rounded-full px-1 text-[0.625rem]">

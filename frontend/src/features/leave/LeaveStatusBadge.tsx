@@ -20,10 +20,10 @@ import type { LeaveStatus } from './types'
  * Lives in `features/leave` rather than the dashboard because screen 16 renders
  * the same states over the full list.
  */
-const VARIANT: Record<LeaveStatus, 'secondary' | 'outline' | 'destructive'> = {
-  pending: 'outline',
-  department_approved: 'secondary',
-  approved: 'secondary',
+const VARIANT: Record<LeaveStatus, 'warning' | 'success' | 'outline' | 'destructive'> = {
+  pending: 'warning',
+  department_approved: 'warning',
+  approved: 'success',
   rejected: 'destructive',
   cancelled: 'outline',
 }

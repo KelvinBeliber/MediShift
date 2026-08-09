@@ -16,7 +16,7 @@ import { Stepper, type StepperStep } from '@/components/data/Stepper'
 import { LeaveStatusBadge } from '@/features/leave/LeaveStatusBadge'
 import { HrApproveWarningDialog } from '@/features/leave/HrApproveWarningDialog'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
@@ -330,7 +330,7 @@ export function LeavePage() {
                     <FormItem>
                       <FormLabel>Start date</FormLabel>
                       <FormControl>
-                        <Input {...field} type="date" />
+                        <DatePicker {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -343,7 +343,7 @@ export function LeavePage() {
                     <FormItem>
                       <FormLabel>End date</FormLabel>
                       <FormControl>
-                        <Input {...field} type="date" />
+                        <DatePicker {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

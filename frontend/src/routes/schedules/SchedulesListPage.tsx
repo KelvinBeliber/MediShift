@@ -6,18 +6,11 @@ import { useNavigate } from 'react-router'
 import { motion } from 'motion/react'
 import { z } from 'zod'
 import { CalendarDaysIcon, PlusIcon, SparklesIcon } from '@heroicons/react/24/outline'
-import {
-  CheckCircleIcon,
-  ClockIcon,
-  DocumentIcon,
-  MegaphoneIcon,
-  PencilIcon,
-} from '@heroicons/react/16/solid'
 import { toast } from 'sonner'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { EmptyState } from '@/components/data/EmptyState'
 import { Panel, PANEL_PADDING } from '@/components/dashboard-primitives/Panel'
-import { Badge } from '@/components/ui/badge'
+import { DepartmentBadge } from '@/components/data/DepartmentBadge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -28,27 +21,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { usePermission } from '@/features/auth/usePermission'
 import { departmentsApi } from '@/features/departments/api'
 import { schedulesApi } from '@/features/schedules/api'
-import { SCHEDULE_STATUSES, type ScheduleStatus } from '@/features/schedules/types'
+import { SCHEDULE_STATUSES } from '@/features/schedules/types'
+import { ScheduleStatusBadge } from '@/features/schedules/ScheduleStatusBadge'
 import { toApiError } from '@/lib/api/errors'
 import { staggerContainer } from '@/lib/motion'
-
-const STATUS_VARIANT: Record<ScheduleStatus, 'secondary' | 'outline' | 'default'> = {
-  draft: 'outline',
-  generating: 'outline',
-  generated: 'secondary',
-  published: 'default',
-  archived: 'outline',
-}
-
-/** `published` is the state most important to catch at a glance (it's live
- * for staff), so it gets the most attention-grabbing glyph. */
-const STATUS_ICON: Record<ScheduleStatus, typeof CheckCircleIcon> = {
-  draft: PencilIcon,
-  generating: ClockIcon,
-  generated: CheckCircleIcon,
-  published: MegaphoneIcon,
-  archived: DocumentIcon,
-}
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -115,9 +91,6 @@ export function SchedulesListPage() {
 
   const schedules = data?.items ?? []
   const departmentOptions = departments?.items ?? []
-
-  const departmentName = (dept: (typeof schedules)[number]['department']) =>
-    typeof dept === 'string' ? dept : dept.name
 
   return (
     <div>
@@ -210,18 +183,18 @@ export function SchedulesListPage() {
                     className="cursor-pointer"
                     onClick={() => void navigate(`/schedules/${schedule.id}`)}
                   >
-                    <TableCell className="font-medium">{departmentName(schedule.department)}</TableCell>
+                    <TableCell className="font-medium">
+                      {typeof schedule.department === 'string' ? (
+                        schedule.department
+                      ) : (
+                        <DepartmentBadge id={schedule.department.id} name={schedule.department.name} />
+                      )}
+                    </TableCell>
                     <TableCell className="tabular-nums">
                       {MONTHS[schedule.month - 1]} {schedule.year}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={STATUS_VARIANT[schedule.status]} className="capitalize">
-                        {(() => {
-                          const Icon = STATUS_ICON[schedule.status]
-                          return <Icon aria-hidden="true" />
-                        })()}
-                        {schedule.status}
-                      </Badge>
+                      <ScheduleStatusBadge status={schedule.status} />
                     </TableCell>
                     <TableCell className="tabular-nums">
                       {schedule.stats?.coveragePercent !== undefined

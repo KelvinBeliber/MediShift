@@ -5,14 +5,15 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 import { MagnifyingGlassIcon, PlusIcon } from '@heroicons/react/24/outline'
-import { CheckCircleIcon, ExclamationTriangleIcon, SunIcon, XCircleIcon } from '@heroicons/react/16/solid'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { toast } from 'sonner'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { EmptyState } from '@/components/data/EmptyState'
 import { Pagination } from '@/components/data/Pagination'
-import { Badge } from '@/components/ui/badge'
+import { DepartmentBadge } from '@/components/data/DepartmentBadge'
+import { EmployeeStatusBadge } from '@/features/employees/EmployeeStatusBadge'
 import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -69,22 +70,6 @@ const createSchema = z.object({
 type CreateValues = z.infer<typeof createSchema>
 
 const STATUS_OPTIONS = ['active', 'inactive', 'on_leave', 'terminated'] as const
-
-const STATUS_VARIANT: Record<string, 'secondary' | 'outline' | 'destructive'> = {
-  active: 'secondary',
-  on_leave: 'outline',
-  inactive: 'outline',
-  terminated: 'destructive',
-}
-
-/** `terminated` is the state most important to catch at a glance, so it gets
- * the most attention-grabbing glyph. */
-const STATUS_ICON: Record<string, typeof CheckCircleIcon> = {
-  active: CheckCircleIcon,
-  on_leave: SunIcon,
-  inactive: XCircleIcon,
-  terminated: ExclamationTriangleIcon,
-}
 
 function initials(name: string): string {
   return name
@@ -252,17 +237,17 @@ export function EmployeesListPage() {
                     </div>
                   </TableCell>
                   <TableCell className="font-mono text-xs">{employee.employeeId}</TableCell>
-                  <TableCell>{employee.department?.name ?? '—'}</TableCell>
+                  <TableCell>
+                    {employee.department ? (
+                      <DepartmentBadge id={employee.department.id} name={employee.department.name} />
+                    ) : (
+                      '—'
+                    )}
+                  </TableCell>
                   <TableCell>{employee.position?.title ?? '—'}</TableCell>
                   <TableCell className="capitalize">{employee.employmentType.replace('_', ' ')}</TableCell>
                   <TableCell>
-                    <Badge variant={STATUS_VARIANT[employee.status] ?? 'outline'} className="capitalize">
-                      {(() => {
-                        const Icon = STATUS_ICON[employee.status]
-                        return Icon ? <Icon aria-hidden="true" /> : null
-                      })()}
-                      {employee.status.replace('_', ' ')}
-                    </Badge>
+                    <EmployeeStatusBadge status={employee.status} />
                   </TableCell>
                 </TableRow>
               ))}
@@ -420,7 +405,7 @@ export function EmployeesListPage() {
                     <FormItem>
                       <FormLabel>Hire date</FormLabel>
                       <FormControl>
-                        <Input {...field} type="date" />
+                        <DatePicker {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

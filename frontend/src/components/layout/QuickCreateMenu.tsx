@@ -40,7 +40,9 @@ export function QuickCreateMenu({ held }: QuickCreateMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-1.5">
+        {/* The one primary-styled button in the shell chrome — bright green on
+            the dark bar reads as the header's single call to action. */}
+        <Button size="sm" className="gap-1.5">
           <PlusIcon className="size-4" />
           <span className="hidden sm:inline">New</span>
         </Button>

@@ -22,7 +22,7 @@ import { Pagination } from '@/components/data/Pagination'
 import { Stepper, type StepperStep } from '@/components/data/Stepper'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -39,13 +39,13 @@ import type { AttendanceRecord } from '@/features/attendance/types'
 import { toApiError } from '@/lib/api/errors'
 import { cn } from '@/lib/utils'
 
-const STATUS_VARIANT: Record<string, 'secondary' | 'outline' | 'destructive'> = {
-  present: 'secondary',
-  late: 'outline',
+const STATUS_VARIANT: Record<string, 'success' | 'warning' | 'outline' | 'destructive'> = {
+  present: 'success',
+  late: 'warning',
   absent: 'destructive',
   leave: 'outline',
   holiday: 'outline',
-  overtime: 'secondary',
+  overtime: 'warning',
 }
 
 /** `absent` is the state most important to catch at a glance, so it gets the
@@ -322,11 +322,11 @@ export function AttendancePage() {
           <div className="mb-4 flex flex-wrap items-end gap-3">
             <label className="text-sm">
               <span className="mb-1 block text-muted-foreground">From</span>
-              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+              <DatePicker value={dateFrom} onChange={setDateFrom} />
             </label>
             <label className="text-sm">
               <span className="mb-1 block text-muted-foreground">To</span>
-              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+              <DatePicker value={dateTo} onChange={setDateTo} />
             </label>
           </div>
 
@@ -354,9 +354,18 @@ export function AttendancePage() {
                     return (
                       <TableRow key={record.id} className={cn(isToday && 'bg-primary/5')}>
                         <TableCell>
-                          {typeof record.employee === 'string'
-                            ? record.employee
-                            : `${record.employee.firstName} ${record.employee.lastName}`}
+                          {(() => {
+                            const name =
+                              typeof record.employee === 'string'
+                                ? record.employee
+                                : `${record.employee.firstName} ${record.employee.lastName}`
+                            return (
+                              <div className="flex items-center gap-2">
+                                <EmployeeAvatar name={name} />
+                                {name}
+                              </div>
+                            )
+                          })()}
                         </TableCell>
                         <TableCell>
                           {isToday ? (

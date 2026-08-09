@@ -12,7 +12,7 @@ import { EmptyState } from '@/components/data/EmptyState'
 import { Panel, PANEL_PADDING, PanelLabel } from '@/components/dashboard-primitives/Panel'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -25,9 +25,9 @@ import { PAYROLL_STATUSES, type PayrollInput, type PayrollStatus } from '@/featu
 import { toApiError } from '@/lib/api/errors'
 import { staggerContainer } from '@/lib/motion'
 
-const STATUS_VARIANT: Record<PayrollStatus, 'outline' | 'secondary' | 'default'> = {
+const STATUS_VARIANT: Record<PayrollStatus, 'outline' | 'success' | 'default'> = {
   draft: 'outline',
-  finalized: 'secondary',
+  finalized: 'success',
   exported: 'default',
 }
 
@@ -155,11 +155,11 @@ export function PayrollPage() {
       <div className="mb-5 flex flex-wrap items-end gap-3">
         <label className="text-sm">
           <span className="mb-1.5 block text-muted-foreground">Period start</span>
-          <Input type="date" value={periodStart} onChange={(e) => setPeriodStart(e.target.value)} />
+          <DatePicker value={periodStart} onChange={setPeriodStart} />
         </label>
         <label className="text-sm">
           <span className="mb-1.5 block text-muted-foreground">Period end</span>
-          <Input type="date" value={periodEnd} onChange={(e) => setPeriodEnd(e.target.value)} />
+          <DatePicker value={periodEnd} onChange={setPeriodEnd} />
         </label>
         <label className="text-sm">
           <span className="mb-1.5 block text-muted-foreground">Status</span>
@@ -284,7 +284,7 @@ export function PayrollPage() {
                     <FormItem>
                       <FormLabel>Period start</FormLabel>
                       <FormControl>
-                        <Input {...field} type="date" />
+                        <DatePicker {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -297,7 +297,7 @@ export function PayrollPage() {
                     <FormItem>
                       <FormLabel>Period end</FormLabel>
                       <FormControl>
-                        <Input {...field} type="date" />
+                        <DatePicker {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

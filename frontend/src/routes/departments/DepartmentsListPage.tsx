@@ -9,6 +9,7 @@ import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/16/solid'
 import { toast } from 'sonner'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { EmptyState } from '@/components/data/EmptyState'
+import { DepartmentBadge } from '@/components/data/DepartmentBadge'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -107,13 +108,19 @@ export function DepartmentsListPage() {
           <TableBody>
             {departments.map((dept) => (
               <TableRow key={dept.id} className="cursor-pointer" onClick={() => void navigate(`/departments/${dept.id}`)}>
-                <TableCell className="font-medium">{dept.name}</TableCell>
+                <TableCell className="font-medium">
+                  {/* Doubles as the legend for this department's colour —
+                      the same badge appears wherever this department is
+                      referenced elsewhere in the app (employees, schedules,
+                      announcements). */}
+                  <DepartmentBadge id={dept.id} name={dept.name} />
+                </TableCell>
                 <TableCell className="font-mono text-xs">{dept.code}</TableCell>
                 <TableCell>
                   {dept.manager ? `${dept.manager.firstName} ${dept.manager.lastName}` : '—'}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={dept.isActive ? 'secondary' : 'outline'}>
+                  <Badge variant={dept.isActive ? 'success' : 'outline'}>
                     {dept.isActive ? <CheckCircleIcon aria-hidden="true" /> : <XCircleIcon aria-hidden="true" />}
                     {dept.isActive ? 'Active' : 'Inactive'}
                   </Badge>

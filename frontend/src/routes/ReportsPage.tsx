@@ -15,7 +15,7 @@ import { ChartTooltip } from '@/components/charts/tooltip'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Panel, PANEL_PADDING_FOCAL, PanelLabel } from '@/components/dashboard-primitives/Panel'
 import { EmptyState } from '@/components/data/EmptyState'
-import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -268,11 +268,11 @@ export function ReportsPage() {
       <div className="mb-5 flex flex-wrap items-end gap-3">
         <label className="text-sm">
           <span className="mb-1.5 block text-muted-foreground">From</span>
-          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+          <DatePicker value={dateFrom} onChange={setDateFrom} />
         </label>
         <label className="text-sm">
           <span className="mb-1.5 block text-muted-foreground">To</span>
-          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+          <DatePicker value={dateTo} onChange={setDateTo} />
         </label>
       </div>
 

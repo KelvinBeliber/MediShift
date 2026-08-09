@@ -139,6 +139,7 @@ export function AppLayout() {
     items: section.items.filter((item) => isVisible(item, held)),
   })).filter((section) => section.items.length > 0)
   const visibleItems = [...visibleSections.flatMap((section) => section.items), PROFILE_ITEM]
+  const searchSections = [...visibleSections, { label: 'Account', items: [PROFILE_ITEM] }]
 
   const displayName = userDisplayName(user)
 
@@ -267,27 +268,30 @@ export function AppLayout() {
             <VerifyEmailBanner email={user.email} />
           </div>
         )}
-        <header className="flex shrink-0 items-center gap-3 border-b bg-card px-4 py-2 sm:px-6">
+        {/* Same Navy 500 ground as the sidebar, so the rail and the bar read as
+            one continuous frame around the light working area rather than a
+            themed panel floating on white. See DESIGN.md > Colors. */}
+        <header className="flex shrink-0 items-center gap-3 border-b border-topbar-border bg-topbar px-4 py-2 text-topbar-foreground sm:px-6">
           <button
             type="button"
             aria-label="Open navigation"
             aria-expanded={navOpen}
-            className="-ml-2 rounded-md p-2 text-muted-foreground hover:text-foreground lg:hidden"
+            className="-ml-2 rounded-md p-2 text-topbar-foreground/70 hover:text-topbar-foreground lg:hidden"
             onClick={() => setNavOpen(true)}
           >
             <Bars3Icon className="size-5" />
           </button>
           {pageTitle && (
-            <h1 className="hidden shrink-0 text-base font-semibold tracking-tight text-foreground sm:block">
+            <h1 className="hidden shrink-0 text-base font-semibold tracking-tight text-topbar-foreground sm:block">
               {pageTitle}
             </h1>
           )}
           <div className="flex flex-1 justify-center px-2 sm:px-6">
-            <GlobalSearch items={visibleItems} />
+            <GlobalSearch sections={searchSections} />
           </div>
           <div className="flex shrink-0 items-center gap-3">
             <HeaderClock />
-            <div className="hidden h-8 w-px bg-border md:block" />
+            <div className="hidden h-8 w-px bg-topbar-border md:block" />
             <QuickCreateMenu held={held} />
             <NotificationBell />
           </div>

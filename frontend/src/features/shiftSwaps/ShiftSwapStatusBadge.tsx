@@ -9,10 +9,10 @@ import {
 import { Badge } from '@/components/ui/badge'
 import type { ShiftSwapStatus } from './types'
 
-const VARIANT: Record<ShiftSwapStatus, 'secondary' | 'outline' | 'destructive' | 'default'> = {
-  pending: 'outline',
-  accepted: 'secondary',
-  manager_approved: 'default',
+const VARIANT: Record<ShiftSwapStatus, 'warning' | 'success' | 'destructive' | 'outline'> = {
+  pending: 'warning',
+  accepted: 'warning',
+  manager_approved: 'success',
   rejected: 'destructive',
   cancelled: 'outline',
 }

@@ -17,6 +17,7 @@ import { Panel } from '@/components/dashboard-primitives/Panel'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -24,14 +25,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { auditLogsApi } from '@/features/auditLogs/api'
 import { AUDIT_ACTIONS, type AuditLogEntry } from '@/features/auditLogs/types'
 
-const ACTION_VARIANT: Record<string, 'default' | 'secondary' | 'outline' | 'destructive'> = {
+const ACTION_VARIANT: Record<string, 'success' | 'secondary' | 'outline' | 'destructive'> = {
   CREATE: 'secondary',
   UPDATE: 'outline',
   DELETE: 'destructive',
-  APPROVE: 'default',
+  APPROVE: 'success',
   REJECT: 'destructive',
-  PUBLISH: 'default',
-  FINALIZE: 'default',
+  PUBLISH: 'success',
+  FINALIZE: 'success',
 }
 
 /** DELETE and REJECT are the most consequential actions to spot at a glance,
@@ -110,11 +111,11 @@ export function AuditLogsPage() {
         </label>
         <label className="text-sm">
           <span className="mb-1.5 block text-muted-foreground">From</span>
-          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+          <DatePicker value={dateFrom} onChange={setDateFrom} />
         </label>
         <label className="text-sm">
           <span className="mb-1.5 block text-muted-foreground">To</span>
-          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+          <DatePicker value={dateTo} onChange={setDateTo} />
         </label>
       </div>
 

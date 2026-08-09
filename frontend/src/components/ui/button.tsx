@@ -6,12 +6,17 @@ import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
   // MediShift: focus is a 2px ring at 2px offset (the No-Halo Rule), buttons are
-  // flat at rest, and nothing translates on hover. See DESIGN.md > Components.
-  "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-45 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  // flat at rest, and nothing translates on hover. 4px radius and bold weight
+  // per DESIGN.md > Shapes. See DESIGN.md > Components.
+  "inline-flex shrink-0 items-center justify-center gap-2 rounded-sm text-sm font-bold whitespace-nowrap transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-45 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-brand-teal-press",
+        // The one variant that skips --primary/--primary-foreground: bright
+        // `brand-green` with navy text, not the deep green + white text every
+        // other primary-coloured element uses. See the Two-Green Rule.
+        default:
+          "bg-brand-green text-navy-500 hover:bg-brand-green-press",
         destructive:
           "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive",
         outline:
@@ -24,11 +29,11 @@ const buttonVariants = cva(
       },
       size: {
         default: "h-10 px-4 py-2 has-[>svg]:px-3",
-        xs: "h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
-        lg: "h-11 rounded-md px-6 has-[>svg]:px-4",
+        xs: "h-6 gap-1 rounded-sm px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
+        sm: "h-8 gap-1.5 rounded-sm px-3 has-[>svg]:px-2.5",
+        lg: "h-11 rounded-sm px-6 has-[>svg]:px-4",
         icon: "size-9",
-        "icon-xs": "size-6 rounded-md [&_svg:not([class*='size-'])]:size-3",
+        "icon-xs": "size-6 rounded-sm [&_svg:not([class*='size-'])]:size-3",
         "icon-sm": "size-8",
         "icon-lg": "size-10",
       },

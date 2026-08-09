@@ -9,15 +9,42 @@
 
   /* Brand primitives. Sampled from the wordmark and logo stroke interiors —
      see DESIGN.md. `brand-teal` is 3.7:1 on white and is an identity colour
-     only; `brand-teal-deep` (5.1:1) is the one that carries text and fills. */
-  --color-brand-navy: oklch(0.3052 0.1045 256.46);
-  --color-brand-navy-700: oklch(0.3742 0.1191 256.32);
+     only, reserved for data-viz, chips and the shift-morning marker;
+     `brand-teal-deep` (5.1:1) is the one that carries text and fills there.
+     Interactive chrome (buttons, links, focus, selected state) runs on the
+     navy/green pair below instead — see the Two-Green Rule. */
   --color-brand-teal: oklch(0.6075 0.1029 196.48);
   --color-brand-teal-deep: oklch(0.5289 0.0893 196.81);
   --color-brand-teal-press: oklch(0.4572 0.077 198.44);
   --color-brand-slate: oklch(0.4189 0.0177 245.05);
   --color-brand-mist: oklch(0.9365 0.0229 266.91);
   --color-brand-mist-50: oklch(0.9756 0.0086 264.52);
+
+  /* Navy scale — ground colour for every inverted surface (nav rail, top
+     bar). 500 is the primary dark navy carrying body copy and the sidebar;
+     700/800 are lighter slate-navy steps for hover states and secondary dark
+     surfaces; 100 is the lightest dark-surface step; 950 is the deepest, for
+     the one surface that should read as pure ink. */
+  --color-navy-950: #000820;
+  --color-navy-800: #13253a;
+  --color-navy-700: #213147;
+  --color-navy-500: #05192d;
+  --color-navy-100: #072543;
+
+  --color-brand-navy: var(--color-navy-500);
+  --color-brand-navy-700: var(--color-navy-700);
+
+  /* Action green — the colour every button, link, focus ring and selected
+     state carries now, in place of teal-deep. Two steps, same reason the
+     teal system has two: `brand-green` is bright enough that only dark text
+     reads on it, so it is for fills paired with navy text (buttons) and
+     never for text itself; `brand-green-deep` is dark enough to work as text
+     on white and as a fill behind white text (links, focus rings, selected
+     nav state, default badges). See the Two-Green Rule in DESIGN.md. */
+  --color-brand-green: #10b981;
+  --color-brand-green-press: #059669;
+  --color-brand-green-deep: #047857;
+  --color-brand-green-deep-press: #065f46;
 
   /* Morning / afternoon / night, in the logo ring's own order. */
   --color-shift-morning: oklch(0.6075 0.1029 196.48);
@@ -26,8 +53,8 @@
 
   /* Overlays only. Tinted with the brand navy so shadows read cool. */
   --shadow-overlay:
-    0 12px 32px -8px oklch(0.3052 0.1045 256.46 / 0.18),
-    0 2px 6px -2px oklch(0.3052 0.1045 256.46 / 0.1);
+    0 12px 32px -8px rgba(5, 25, 45, 0.18),
+    0 2px 6px -2px rgba(5, 25, 45, 0.1);
 
   /* Data-surface elevation.
    *
@@ -40,14 +67,14 @@
    * `card` is the resting state, `card-hover` the interactive one, `focal` the
    * single anchor panel per screen. */
   --shadow-card:
-    0 1px 2px -1px oklch(0.3052 0.1045 256.46 / 0.08),
-    0 4px 12px -4px oklch(0.3052 0.1045 256.46 / 0.08);
+    0 1px 2px -1px rgba(5, 25, 45, 0.08),
+    0 4px 12px -4px rgba(5, 25, 45, 0.08);
   --shadow-card-hover:
-    0 2px 4px -2px oklch(0.3052 0.1045 256.46 / 0.1),
-    0 12px 24px -8px oklch(0.3052 0.1045 256.46 / 0.14);
+    0 2px 4px -2px rgba(5, 25, 45, 0.1),
+    0 12px 24px -8px rgba(5, 25, 45, 0.14);
   --shadow-focal:
-    0 2px 4px -2px oklch(0.3052 0.1045 256.46 / 0.08),
-    0 16px 40px -12px oklch(0.3052 0.1045 256.46 / 0.16);
+    0 2px 4px -2px rgba(5, 25, 45, 0.08),
+    0 16px 40px -12px rgba(5, 25, 45, 0.16);
 }
 
 @theme inline {
@@ -83,10 +110,23 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --color-topbar: var(--topbar);
+  --color-topbar-foreground: var(--topbar-foreground);
+  --color-topbar-accent: var(--topbar-accent);
+  --color-topbar-accent-foreground: var(--topbar-accent-foreground);
+  --color-topbar-border: var(--topbar-border);
+  --color-topbar-ring: var(--topbar-ring);
+  /* Shape scale. sm/md/lg/2xl are fixed, not derived from a single base —
+     see DESIGN.md > Shapes. `xl` sits between lg and 2xl for the few panels
+     that were already rounder than a standard card. `--radius` stays as a
+     plain 12px alias for the handful of vendored components (e.g. Sonner)
+     that only accept one radius variable. */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-full: 9999px;
   --color-chart-scale-pattern-color: var(--chart-scale-pattern-color);
   --color-chart-scale-05: var(--chart-scale-05);
   --color-chart-scale-04: var(--chart-scale-04);
@@ -111,53 +151,70 @@
 }
 
 :root {
-  --radius: 0.625rem;
+  /* Plain alias for the handful of vendored components (Sonner) that only
+     take one radius variable. Matches the `lg` step below. */
+  --radius: 12px;
   /* Paper: a half-step off pure white, so true-white cards read as lifted
      without needing a shadow. See the Flat-At-Rest Rule in DESIGN.md. */
   --background: oklch(0.9936 0.0017 247.84);
-  --foreground: oklch(0.3052 0.1045 256.46);
+  --foreground: var(--color-navy-500);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.3052 0.1045 256.46);
+  --card-foreground: var(--color-navy-500);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.3052 0.1045 256.46);
-  --primary: oklch(0.5289 0.0893 196.81);
+  --popover-foreground: var(--color-navy-500);
+  /* The action colour — see the Two-Green Rule. Dark enough to carry white
+     text as a fill and to read as text itself on white (5.4:1). The bright
+     `brand-green` is reserved for the primary button's own fill, applied
+     directly rather than through this token — see Button. */
+  --primary: var(--color-brand-green-deep);
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.9756 0.0086 264.52);
-  --secondary-foreground: oklch(0.3052 0.1045 256.46);
+  --secondary-foreground: var(--color-navy-500);
   --muted: oklch(0.9756 0.0086 264.52);
   --muted-foreground: oklch(0.5052 0.0234 250.59);
   --accent: oklch(0.9365 0.0229 266.91);
-  --accent-foreground: oklch(0.3052 0.1045 256.46);
+  --accent-foreground: var(--color-navy-500);
   --destructive: oklch(0.5013 0.1783 28.7);
   --destructive-foreground: oklch(1 0 0);
   --border: oklch(0.9142 0.0151 260.73);
   --input: oklch(0.9142 0.0151 260.73);
-  --ring: oklch(0.5289 0.0893 196.81);
+  --ring: var(--color-brand-green-deep);
   /* Categorical series follow the shift scale first, then extend into the
      navy. Revisit properly on screen 22 (Reports) when real series exist. */
   --chart-1: oklch(0.6075 0.1029 196.48);
   --chart-2: oklch(0.6009 0.1245 237.02);
   --chart-3: oklch(0.5594 0.1763 283.69);
-  --chart-4: oklch(0.3742 0.1191 256.32);
+  --chart-4: var(--color-navy-700);
   --chart-5: oklch(0.7529 0.0783 196.7);
   /* The navigation rail is the one inverted surface in the product.
    *
-   * Ground is Chart Navy — the darkest colour in the system and the exact navy
-   * of the "Medi" in the wordmark, so the rail reads as the brand rather than as
-   * a themed panel. White on it is 13.5:1.
+   * Ground is Navy 500 — the primary dark navy and the exact colour of the
+   * "Medi" in the wordmark, so the rail reads as the brand rather than as a
+   * themed panel. White on it is 13.5:1.
    *
-   * The selected item takes `brand-teal-deep`, which DESIGN.md already lists as
-   * the colour for "selected state" alongside button fills and focus rings; at
-   * 5.1:1 behind white text it passes AA. Hover is the lighter Navy 700, so
-   * hover and selected are never confusable. */
-  --sidebar: oklch(0.3052 0.1045 256.46);
+   * The selected item takes the bright `brand-green` with navy text — the
+   * same punchy, high-contrast pairing as the primary button — so the one
+   * selected row in the rail reads unmistakably as "on" rather than just
+   * "slightly different". Hover is the lighter Navy 700, so hover and
+   * selected are never confusable. */
+  --sidebar: var(--color-navy-500);
   --sidebar-foreground: oklch(1 0 0);
-  --sidebar-primary: oklch(0.5289 0.0893 196.81);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.3742 0.1191 256.32);
+  --sidebar-primary: var(--color-brand-green);
+  --sidebar-primary-foreground: var(--color-navy-500);
+  --sidebar-accent: var(--color-navy-700);
   --sidebar-accent-foreground: oklch(1 0 0);
-  --sidebar-border: oklch(0.3742 0.1191 256.32);
-  --sidebar-ring: oklch(0.6075 0.1029 196.48);
+  --sidebar-border: var(--color-navy-700);
+  --sidebar-ring: var(--color-brand-green);
+  /* The top bar. Same Navy 500 ground as the sidebar so the two form one
+     continuous frame around the light working area, per DESIGN.md > Colors —
+     the dark navy is not confined to the rail. Accent is the lighter Navy
+     700 step, for hover states on the icons and controls that live here. */
+  --topbar: var(--color-navy-500);
+  --topbar-foreground: oklch(1 0 0);
+  --topbar-accent: var(--color-navy-700);
+  --topbar-accent-foreground: oklch(1 0 0);
+  --topbar-border: var(--color-navy-700);
+  --topbar-ring: var(--color-brand-green);
   --chart-background: oklch(1 0 0);
   --chart-foreground: oklch(0.145 0.004 285);
   --chart-foreground-muted: oklch(0.55 0.014 260);
@@ -220,6 +277,58 @@
   time,
   [data-numeric] {
     font-variant-numeric: tabular-nums;
+  }
+
+  /* Thin, brand-tinted scrollbars everywhere, in place of the OS default —
+     a thick flat-grey bar was the one piece of chrome in the product that
+     didn't belong to this system. Firefox only takes the two `scrollbar-*`
+     properties (no thumb radius/inset there); still a large improvement
+     over its own default. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--color-navy-500) 25%, transparent) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: color-mix(in oklab, var(--color-navy-500) 25%, transparent);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    border-radius: var(--radius-full);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in oklab, var(--color-navy-500) 45%, transparent);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* The sidebar and top bar are the app's inverted surfaces — a navy-tinted
+     thumb would vanish against their own navy ground, so they get a light
+     one instead. */
+  aside,
+  header {
+    scrollbar-color: color-mix(in oklab, white 30%, transparent) transparent;
+  }
+
+  aside::-webkit-scrollbar-thumb,
+  header::-webkit-scrollbar-thumb {
+    background-color: color-mix(in oklab, white 30%, transparent);
+  }
+
+  aside::-webkit-scrollbar-thumb:hover,
+  header::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in oklab, white 45%, transparent);
   }
 }
 

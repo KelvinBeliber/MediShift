@@ -12,8 +12,17 @@ const badgeVariants = cva(
         default: "bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
         secondary:
           "bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
+        // Status vocabulary — a tinted ground + matching text, not a solid
+        // fill, so a row of these in a table column reads as information
+        // rather than a wall of colour (the Scarcity Rule in DESIGN.md).
+        // `destructive` moved to the same tinted treatment for this reason:
+        // a solid-red badge sitting next to a tinted-green one in the same
+        // status column read as two different components, not two states of
+        // one.
+        success: "border-transparent bg-brand-green/15 text-brand-green-deep [a&]:hover:bg-brand-green/25",
+        warning: "border-transparent bg-amber-100 text-amber-800 [a&]:hover:bg-amber-100/70",
         destructive:
-          "bg-destructive text-white focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40 [a&]:hover:bg-destructive/90",
+          "border-transparent bg-destructive/12 text-destructive focus-visible:ring-destructive/20 [a&]:hover:bg-destructive/20",
         outline:
           "border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         ghost: "[a&]:hover:bg-accent [a&]:hover:text-accent-foreground",

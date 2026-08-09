@@ -7,7 +7,7 @@ import { z } from 'zod'
 import { ArrowLeftIcon, ArrowUpTrayIcon, DocumentTextIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { toast } from 'sonner'
-import { Badge } from '@/components/ui/badge'
+import { EmployeeStatusBadge } from '@/features/employees/EmployeeStatusBadge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -162,7 +162,7 @@ export function EmployeeDetailPage() {
             </p>
           </div>
         </div>
-        <Badge className="capitalize">{employee.status.replace('_', ' ')}</Badge>
+        <EmployeeStatusBadge status={employee.status} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">

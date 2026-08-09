@@ -39,6 +39,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Textarea } from '@/components/ui/textarea'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
@@ -68,6 +69,8 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { usePermission } from '@/features/auth/usePermission'
 import { schedulesApi, shiftsApi } from '@/features/schedules/api'
 import { shiftTypeStyle } from '@/features/schedules/shiftStyle'
+import { ScheduleStatusBadge } from '@/features/schedules/ScheduleStatusBadge'
+import { ShiftAssignmentStatusBadge } from '@/features/schedules/ShiftAssignmentStatusBadge'
 import type { GenerationResult, Shift } from '@/features/schedules/types'
 import { SHIFT_TYPES, type ShiftType } from '@/features/departments/types'
 import { certificationsApi } from '@/features/certifications/api'
@@ -106,28 +109,20 @@ function toDateInput(iso: string): string {
   return iso.slice(0, 10)
 }
 
-/** `declined`/`no_show` are the states most important to catch at a glance,
- * so they carry the most attention-grabbing glyphs. */
-const ASSIGNMENT_STATUS_ICON: Record<string, typeof CheckCircleIcon> = {
-  assigned: UserPlusIcon,
-  confirmed: CheckCircleIcon,
-  declined: XCircleIcon,
-  completed: CheckBadgeIcon,
-  no_show: ExclamationTriangleIcon,
-}
-
-/** OPTIMAL/FEASIBLE/INFEASIBLE, coloured per what it means for the manager. */
+/** OPTIMAL/FEASIBLE/INFEASIBLE, coloured per what it means for the manager —
+ * same success/warning/destructive vocabulary as every other status badge in
+ * the app, not a one-off palette. */
 function GenerationStatusBadge({ status }: { status: string }) {
   if (status === 'OPTIMAL') {
     return (
-      <Badge className="gap-1 bg-brand-teal/15 text-brand-teal-deep hover:bg-brand-teal/15">
+      <Badge variant="success" className="gap-1">
         <CheckCircleIcon className="size-3.5" /> Optimal
       </Badge>
     )
   }
   if (status === 'FEASIBLE') {
     return (
-      <Badge variant="outline" className="gap-1 border-amber-300 text-amber-700">
+      <Badge variant="warning" className="gap-1">
         <ExclamationTriangleIcon className="size-3.5" /> Feasible, not optimal
       </Badge>
     )
@@ -478,7 +473,7 @@ function ShiftDialog({
                       <FormItem>
                         <FormLabel>Date</FormLabel>
                         <FormControl>
-                          <Input {...field} type="date" disabled={!editable} />
+                          <DatePicker {...field} disabled={!editable} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -704,13 +699,7 @@ function ShiftDialog({
                               </Button>
                             </>
                           ) : (
-                            <Badge variant="outline" className="text-xs capitalize">
-                              {(() => {
-                                const Icon = ASSIGNMENT_STATUS_ICON[a.status]
-                                return Icon ? <Icon className="size-3" aria-hidden="true" /> : null
-                              })()}
-                              {a.status.replace('_', ' ')}
-                            </Badge>
+                            <ShiftAssignmentStatusBadge status={a.status} />
                           )}
                         </div>
                       </li>
@@ -1097,13 +1086,7 @@ export function ScheduleDetailPage() {
       >
         <span className="flex items-center gap-2.5">
           {departmentName} · {MONTHS[schedule.month - 1]} {schedule.year}
-          <Badge
-            variant={schedule.status === 'published' ? 'default' : 'outline'}
-            className="capitalize"
-          >
-            {schedule.status === 'published' && <CheckBadgeIcon aria-hidden="true" />}
-            {schedule.status}
-          </Badge>
+          <ScheduleStatusBadge status={schedule.status} />
         </span>
       </SectionHeading>
 

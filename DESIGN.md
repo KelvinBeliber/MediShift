@@ -2,8 +2,17 @@
 name: MediShift
 description: AI-powered workforce management for healthcare teams.
 colors:
-  brand-navy: '#012D62'
-  brand-navy-700: '#0A3F7E'
+  navy-950: '#000820'
+  navy-800: '#13253A'
+  navy-700: '#213147'
+  navy-500: '#05192D'
+  navy-100: '#072543'
+  brand-navy: '#05192D'
+  brand-navy-700: '#213147'
+  brand-green: '#10B981'
+  brand-green-press: '#059669'
+  brand-green-deep: '#047857'
+  brand-green-deep-press: '#065F46'
   brand-teal: '#049597'
   brand-teal-deep: '#047B7D'
   brand-teal-press: '#036467'
@@ -56,10 +65,11 @@ typography:
     letterSpacing: '0.02em'
     fontFeature: "'tnum' 1, 'cv11' 1"
 rounded:
-  sm: '0.375rem'
-  md: '0.5rem'
-  lg: '0.625rem'
-  xl: '0.875rem'
+  sm: '4px'
+  md: '8px'
+  lg: '12px'
+  xl: '16px'
+  2xl: '20px'
   full: '9999px'
 spacing:
   xs: '0.25rem'
@@ -70,21 +80,22 @@ spacing:
   '2xl': '4rem'
 components:
   button-primary:
-    backgroundColor: '{colors.brand-teal-deep}'
-    textColor: '#FFFFFF'
+    backgroundColor: '{colors.brand-green}'
+    textColor: '{colors.brand-navy}'
+    fontWeight: 700
     typography: '{typography.label}'
-    rounded: '{rounded.md}'
+    rounded: '{rounded.sm}'
     height: '2.75rem'
     padding: '0 1.25rem'
   button-primary-hover:
-    backgroundColor: '{colors.brand-teal-press}'
+    backgroundColor: '{colors.brand-green-press}'
   button-ghost:
     backgroundColor: 'transparent'
     textColor: '{colors.brand-navy}'
-    rounded: '{rounded.md}'
+    rounded: '{rounded.sm}'
     height: '2.75rem'
   link-inline:
-    textColor: '{colors.brand-teal-deep}'
+    textColor: '{colors.brand-green-deep}'
     typography: '{typography.label}'
   input-field:
     backgroundColor: '#FFFFFF'
@@ -110,13 +121,13 @@ components:
 
 MediShift looks like the instruments a hospital already trusts: a legible board on a wall, a chart clipped to a bed, a clock you can read from across a corridor. It is not a consumer app trying to feel friendly, and it is not enterprise software trying to feel serious. It is a working instrument for people who are mid-shift, on their feet, and reading fast.
 
-The whole system runs on **one family, two colors, and a lot of white**. Deep navy carries every word; a single teal carries every action. Everything else is a neutral. Colour is scarce on purpose, because on a schedule screen colour has to mean something — a state, a shift, a conflict — and a palette that decorates cannot also inform.
+The whole system runs on **one family, two colors, and a lot of white**. Deep navy carries every word and grounds the sidebar and top bar; a single green carries every action. Everything else is a neutral, including the brand teal, which stays scoped to identity marks and data-viz rather than competing with green for "action". Colour is scarce on purpose, because on a schedule screen colour has to mean something — a state, a shift, a conflict — and a palette that decorates cannot also inform.
 
 Depth is almost absent. Surfaces are separated by 1px hairlines and tonal shifts, not shadows, because a dense schedule grid stacked with drop-shadows becomes noise at exactly the moment it needs to be scannable. The one place the system permits expression is the brand surface at the front door, where the supplied illustration runs at full poster scale against a form that stays completely quiet.
 
 **Key Characteristics:**
 - One typeface (Manrope) across headings, labels, controls, and data
-- A single teal accent, reserved for actions and state — never decoration
+- A navy ground for every inverted surface (sidebar, top bar) and a single green accent, reserved for actions and state — never decoration
 - Flat by default: hairlines and tone instead of shadows
 - Fixed rem type scale, not fluid clamps — this is product UI at consistent DPI
 - 44px form controls, for shared ward tablets
@@ -124,16 +135,24 @@ Depth is almost absent. Surfaces are separated by 1px hairlines and tonal shifts
 
 ## Colors
 
-A cool, clinical palette pulled directly from the wordmark and logo ring by sampling stroke interiors — not approximated by eye.
+A cool, clinical palette pulled directly from the wordmark and logo ring by sampling stroke interiors — not approximated by eye — plus a navy scale and an action green layered in for the chrome.
 
 ### Primary
-- **Chart Navy** (`{colors.brand-navy}`): every heading, every line of body copy, and the default foreground. At 13.5:1 on white it is the most legible ink in the system, and it is the exact navy of the "Medi" in the wordmark. Also the ground for inverted surfaces.
+- **Navy 500** (`{colors.brand-navy}`): every heading, every line of body copy, and the default foreground. At 13.5:1 on white it is the most legible ink in the system, and it is the exact navy of the "Medi" in the wordmark. Also the ground for inverted surfaces — the sidebar and the top bar both sit on it, not just the rail.
 
-  **The navigation rail is the inverted surface.** From screen 6 the app sidebar is a solid Chart Navy panel with white type — the one dark region in the product. It reads as the brand rather than as a themed panel, and it gives the light working area a hard edge to sit against without the content itself carrying any heavy colour. Selected nav items take `brand-teal-deep` (DESIGN.md already assigns it to "selected state"); hover takes Navy 700, so hover and selected are never confusable. Tokens live in `--sidebar-*` in `index.css`; nothing should hardcode navy in sidebar markup.
-- **Signal Teal Deep** (`{colors.brand-teal-deep}`): the one action colour. Primary button fills, inline links, focus rings, selected state. At 5.1:1 against white it is the darkest teal that stays recognisably the brand teal while passing AA both as text and as a fill behind white text.
+  **The navigation rail and the top bar are the inverted surfaces.** From screen 6 the app sidebar is a solid Navy 500 panel with white type; the top bar (added when the shell was reworked to stop the header reading as an unstyled white strip) shares the same ground, so the two form one continuous dark frame around the light working area rather than a themed panel floating on white. Selected nav items and the top bar's own primary action take the bright `brand-green` with navy text — the same pairing as the primary button, so "selected"/"primary action" reads identically everywhere it appears. Hover surfaces take Navy 700, so hover and selected/active are never confusable. Tokens live in `--sidebar-*` and `--topbar-*` in `index.css`; nothing should hardcode navy in sidebar or top-bar markup. The wider scale — `navy-950` (deepest), `navy-800`, `navy-700` (hover/border step), `navy-100` — is available for any other dark surface that needs it; see the Navy Scale.
+- **Brand Green Deep** (`{colors.brand-green-deep}`): the action colour for everything that is not the primary button's own fill — inline links, focus rings, selected state on the sidebar's ring, default badges. At 5.4:1 against white it is dark enough to read as text and to carry white text as a fill. See the Two-Green Rule.
+- **Brand Green** (`{colors.brand-green}`): the primary button's fill, always paired with navy text, never white — see the Two-Green Rule and Components > Buttons.
 
 ### Secondary
-- **Wordmark Teal** (`{colors.brand-teal}`): the literal brand teal from "Shift". At 3.7:1 it is an **identity colour, not a text colour** — dots, 1px rules, icon strokes, large display type, and the morning shift marker. Never small text; never a fill behind white text.
+- **Wordmark Teal** (`{colors.brand-teal}`): the literal brand teal from "Shift". At 3.7:1 it is an **identity colour, not a text colour** — dots, 1px rules, icon strokes, large display type, and the morning shift marker. Never small text; never a fill behind white text. Untouched by the navy/green refresh: teal still owns data-viz, chips, and the shift scale.
+- **Brand Teal Deep** (`{colors.brand-teal-deep}`): the text-safe teal for the identity uses above — chart lines, chip text, the "today" marker in the schedule calendar. No longer the app's action colour; that role moved to `brand-green-deep`.
+
+### Navy Scale
+Five steps, sampled to sit together as one dark family rather than derived from a single hue-rotation: `navy-950` `#000820` (deepest — reserved for surfaces that need to read as pure ink), `navy-500` `#05192D` (`brand-navy` — the primary dark navy, sidebar and top-bar ground, default foreground), `navy-800` `#13253A` and `navy-700` `#213147` (`brand-navy-700` — lighter slate-navy steps used for hover and border on the two dark surfaces), `navy-100` `#072543` (a secondary dark surface, for anything nested one level inside a navy panel). Use the named roles (`brand-navy`, `sidebar-*`, `topbar-*`) where one exists; reach for the raw `navy-*` scale directly only for a new dark surface those roles don't cover.
+
+### The Two-Green Rule
+Same shape as the Two-Teal Rule, for the same reason: one bright colour and one that's dark enough to be legible as text, and they are not interchangeable. `brand-green` is the primary button's fill and nothing else — it is bright enough that only dark (navy) text reads on it, so it may never sit behind white text and never carries text itself. `brand-green-deep` is every other action use — links, focus rings, the sidebar's selected-state ring, default badges — dark enough to work both as text on white and as a fill behind white text. Reaching for the bright green anywhere text sits directly on it (other than the primary button, with navy text) is the single easiest way to fail contrast in this half of the system.
 
 ### Tertiary
 - **Ring Blue** (`{colors.shift-afternoon}`) and **Ring Violet** (`{colors.shift-night}`): the second and third stops of the logo ring's gradient, reassigned as the afternoon and night shift markers. They exist to encode a state, and appear nowhere else.
@@ -147,7 +166,7 @@ A cool, clinical palette pulled directly from the wordmark and logo ring by samp
 
 ### Named Rules
 
-**The Two-Teal Rule.** There are two teals and they are not interchangeable. `brand-teal` is who MediShift *is* — it may never carry text or sit behind white text. `brand-teal-deep` is what MediShift *does* — every button, link, and focus ring. Reaching for the bright one on an interactive element is the single easiest way to fail contrast in this system.
+**The Two-Teal Rule.** There are two teals and they are not interchangeable, though their job narrowed when the action colour moved to green (see the Two-Green Rule above). `brand-teal` is who MediShift *is* — it may never carry text or sit behind white text. `brand-teal-deep` is teal's own text-safe half — chart lines, chip text, the schedule calendar's "today" marker. Reaching for the bright one anywhere text sits on it is the single easiest way to fail contrast in this system.
 
 **The Scarcity Rule.** The accent covers under 10% of any screen. If a surface has more than one teal element competing for the eye, one of them is decoration and should be navy or grey.
 
@@ -223,17 +242,17 @@ Encoded in `frontend/src/components/dashboard-primitives/Panel.tsx`. The vendore
 
 ## Shapes
 
-Gently rounded, never soft: **10px (`{rounded.lg}`)** on panels and cards, **8px (`{rounded.md}`)** on buttons, inputs, and alerts, **6px (`{rounded.sm}`)** on chips and small badges, and full round only on status dots and avatars.
+Gently rounded, never soft: **12px (`{rounded.lg}`)** on panels and cards, **20px (`{rounded.2xl}`)** on the rare surface that wants to read as softer than a panel, **8px (`{rounded.md}`)** on inputs and alerts, **4px (`{rounded.sm}`)** on buttons and small chips/badges — tight enough to read as an instrument control rather than a soft pill — and full round only on status dots and avatars.
 
 Borders are always 1px `Hairline`. A coloured border wider than 1px on a card, list item, or alert is not part of this system — an alert states its severity with an icon, its text colour, and a tinted ground, not with a thick coloured bar down its left edge.
 
 ## Components
 
 ### Buttons
-- **Shape:** 8px radius, 44px tall (`h-11`), full-width in single-column forms, auto width elsewhere.
-- **Primary:** `brand-teal-deep` fill, white text, 500 weight, 13px. No gradient, no inner highlight, no shadow.
-- **Hover / active:** darkens to `brand-teal-press` over 150ms. Nothing moves — a button that lifts on hover is a marketing button.
-- **Focus:** the 2px offset teal ring from the No-Halo Rule.
+- **Shape:** 4px radius, 44px tall (`h-11`), full-width in single-column forms, auto width elsewhere.
+- **Primary:** `brand-green` fill, **navy** text (not white — see the Two-Green Rule), 700 weight, 13px. High-contrast and punchy by design. No gradient, no inner highlight, no shadow.
+- **Hover / active:** darkens to `brand-green-press` over 150ms. Nothing moves — a button that lifts on hover is a marketing button.
+- **Focus:** the 2px offset green ring from the No-Halo Rule.
 - **Disabled:** 45% opacity, `cursor-not-allowed`, no colour change.
 - **Loading:** the label is replaced by a spinner plus a present-participle verb ("Signing in…"), the button keeps its width, and it is `aria-busy` and disabled.
 - **Ghost / secondary:** transparent with navy text; hover fills `Mist 50`.
@@ -299,7 +318,7 @@ All four live in `frontend/src/lib/motion.ts` and are never typed at a call site
 ## Do's and Don'ts
 
 ### Do:
-- **Do** use `brand-teal-deep` for every interactive colour and `brand-teal` for every identity mark, per the Two-Teal Rule.
+- **Do** use `brand-green` (with navy text) for the primary button's fill and `brand-green-deep` for every other interactive colour — links, focus rings, selected state — per the Two-Green Rule. Reserve `brand-teal`/`brand-teal-deep` for identity marks and data-viz, per the Two-Teal Rule.
 - **Do** set `tabular-nums` on every time, duration, hour count, and currency figure.
 - **Do** separate surfaces with 1px `Hairline` and tone, and keep shadows for genuinely floating elements.
 - **Do** put more space above a heading than below it.

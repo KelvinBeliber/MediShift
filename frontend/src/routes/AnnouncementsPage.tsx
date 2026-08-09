@@ -16,10 +16,12 @@ import { toast } from 'sonner'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { EmptyState } from '@/components/data/EmptyState'
 import { Panel, PANEL_PADDING } from '@/components/dashboard-primitives/Panel'
+import { DepartmentBadge } from '@/components/data/DepartmentBadge'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -32,9 +34,13 @@ import { toApiError } from '@/lib/api/errors'
 import { staggerContainer } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
+// `important` deliberately isn't `success` (green) here — that colour now
+// means "this went well" everywhere else in the app, and an announcement
+// being important isn't a good outcome, it's an attention level. `warning`
+// is the correct rung between a routine notice and a true emergency.
 const PRIORITY_META = {
   normal: { icon: MegaphoneIcon, chip: 'bg-muted text-muted-foreground', badge: 'outline' as const, label: 'Notice' },
-  important: { icon: SignalIcon, chip: 'bg-brand-teal/12 text-brand-teal-deep', badge: 'default' as const, label: 'Important' },
+  important: { icon: SignalIcon, chip: 'bg-amber-100 text-amber-800', badge: 'warning' as const, label: 'Important' },
   emergency: {
     icon: ExclamationTriangleIcon,
     chip: 'bg-destructive/10 text-destructive',
@@ -192,9 +198,17 @@ export function AnnouncementsPage() {
                       <Badge variant={meta.badge} className="text-xs">
                         {meta.label}
                       </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {a.scope === 'hospital' ? 'Hospital-wide' : a.department?.name ?? 'Department'}
-                      </Badge>
+                      {a.scope === 'hospital' ? (
+                        <Badge variant="outline" className="text-xs">
+                          Hospital-wide
+                        </Badge>
+                      ) : (
+                        <DepartmentBadge
+                          id={a.department?.id}
+                          name={a.department?.name ?? 'Department'}
+                          className="text-xs"
+                        />
+                      )}
                     </div>
                     <p className="mt-1.5 text-sm whitespace-pre-line text-foreground/90">{a.body}</p>
                     <p className="mt-2 text-xs text-muted-foreground">
@@ -341,7 +355,7 @@ export function AnnouncementsPage() {
                   <FormItem>
                     <FormLabel>Expires (optional)</FormLabel>
                     <FormControl>
-                      <Input {...field} type="date" />
+                      <DatePicker {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
