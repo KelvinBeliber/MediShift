@@ -7,6 +7,10 @@ The core feature is an AI-assisted scheduling engine powered by Google OR-Tools 
 
 The goal is to build an enterprise-grade SaaS application that demonstrates modern software engineering practices, scalable architecture, and real-world business workflows.
 
+## Contributing
+
+Commits in this repository must be authored under a real contributor's git identity — do not attribute commits to Claude or any other AI assistant, even when AI tooling was used to help write the change.
+
 ## Tech Stack
 
 ### Frontend
