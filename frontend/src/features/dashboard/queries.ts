@@ -1,7 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { useAnyPermission, useCurrentUser, usePermission } from '@/features/auth/usePermission'
+import { attendanceApi } from '@/features/attendance/api'
 import { leaveApi } from '@/features/leave/api'
+import { messagesApi } from '@/features/messages/api'
 import { notificationsApi } from '@/features/notifications/api'
+import { shiftSwapsApi } from '@/features/shiftSwaps/api'
 import { dashboardApi, daysAgo, daysAhead, today } from './api'
 import type { DashboardShift } from './types'
 
@@ -39,6 +42,14 @@ export function useDashboardQueries() {
   const canViewReports = useAnyPermission(['report:view', 'analytics:view'])
   const canViewSchedule = usePermission('schedule:view')
   const canApproveLeave = usePermission('leave:approve')
+  /**
+   * Gates `GET /attendance/today`, matching the backend's own `selfOrManage`
+   * check on that route (`attendance.routes.ts`). Only the `employee` role
+   * holds `attendance:record_own` — department heads and shift coordinators
+   * hold `attendance:view` but not this, so for them "today" genuinely has no
+   * clock-in workflow to report, not merely a state that hasn't happened yet.
+   */
+  const canRecordAttendance = useAnyPermission(['attendance:record_own', 'attendance:manage'])
 
   const trendFrom = daysAgo(TREND_WINDOW_DAYS)
   const trendTo = today()
@@ -113,10 +124,51 @@ export function useDashboardQueries() {
     queryFn: () => notificationsApi.list(false),
   })
 
+  /**
+   * The caller's own attendance history, for the streak/hours-worked figures
+   * on the employee dashboard. `GET /attendance/mine` is self-scoped
+   * server-side and needs no `attendance:view` — see the route's own comment
+   * — but it does need a linked employee record, same as `myShifts`.
+   */
+  const myAttendance = useQuery({
+    queryKey: ['attendance', 'mine', trendFrom, trendTo],
+    queryFn: () => attendanceApi.mine({ dateFrom: trendFrom, dateTo: trendTo, limit: 100 }),
+    enabled: Boolean(employeeId),
+    select: (page) => page.items,
+  })
+
+  /** Live clock-in state for today. Shares its query key with `AttendancePage`'s own fetch. */
+  const myAttendanceToday = useQuery({
+    queryKey: ['attendance', 'today'],
+    queryFn: () => attendanceApi.today(),
+    enabled: canRecordAttendance && Boolean(employeeId),
+  })
+
+  /**
+   * Swap requests this employee raised or was targeted by. Gated on a linked
+   * employee id, not just on being signed in: without one, `req.user.employeeId`
+   * is undefined server-side and `GET /shift-swaps` would fall through to
+   * every record rather than none — see `shiftSwap.controller.ts`'s
+   * `getSwapRequests`. `myShifts` already avoids the equivalent gap the same way.
+   */
+  const myShiftSwaps = useQuery({
+    queryKey: ['shift-swaps', 'mine'],
+    queryFn: () => shiftSwapsApi.list({ limit: 50 }),
+    enabled: Boolean(employeeId),
+    select: (page) => page.items,
+  })
+
+  /** Unread direct messages, distinct from the notifications count above. No permission gate — any signed-in account can have conversations. */
+  const myMessages = useQuery({
+    queryKey: ['messages', 'inbox'],
+    queryFn: () => messagesApi.inbox(),
+  })
+
   return {
     canViewReports,
     canViewSchedule,
     canApproveLeave,
+    canRecordAttendance,
     summary,
     attendance,
     overtime,
@@ -125,6 +177,10 @@ export function useDashboardQueries() {
     myShifts,
     myLeave,
     unread,
+    myAttendance,
+    myAttendanceToday,
+    myShiftSwaps,
+    myMessages,
     windowDays: TREND_WINDOW_DAYS,
     upcomingWindowDays: UPCOMING_WINDOW_DAYS,
   }

@@ -181,6 +181,7 @@ export function Dashboard() {
     canViewReports,
     canViewSchedule,
     canApproveLeave,
+    canRecordAttendance,
     summary,
     attendance,
     overtime,
@@ -189,11 +190,16 @@ export function Dashboard() {
     myShifts,
     myLeave,
     unread,
+    myAttendance,
+    myAttendanceToday,
+    myShiftSwaps,
+    myMessages,
     windowDays,
     upcomingWindowDays,
   } = useDashboardQueries()
 
   const greeting = user ? firstNameOf(userDisplayName(user)) : null
+  const unreadMessageCount = (myMessages.data ?? []).reduce((sum, item) => sum + item.unreadCount, 0)
   const summaryData = summary.data
   const summaryWindow = summaryData?.windowDays ?? windowDays
   const rates = toRates(attendance.data ?? [])
@@ -375,6 +381,16 @@ export function Dashboard() {
           unreadLoading={unread.isPending}
           canViewSchedule={canViewSchedule}
           upcomingWindowDays={upcomingWindowDays}
+          employeeId={user?.employee?.id}
+          canRecordAttendance={canRecordAttendance}
+          attendanceToday={myAttendanceToday.data}
+          attendanceTodayLoading={myAttendanceToday.isPending && myAttendanceToday.fetchStatus !== 'idle'}
+          attendanceHistory={myAttendance.data ?? []}
+          attendanceHistoryLoading={myAttendance.isPending && myAttendance.fetchStatus !== 'idle'}
+          shiftSwaps={myShiftSwaps.data ?? []}
+          shiftSwapsLoading={myShiftSwaps.isPending && myShiftSwaps.fetchStatus !== 'idle'}
+          unreadMessages={unreadMessageCount}
+          unreadMessagesLoading={myMessages.isPending}
         />
       </div>
     </TooltipProvider>

@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
-import { ArrowRightIcon, CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+import { ArrowRightIcon } from '@heroicons/react/24/outline'
+import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid'
 import { Panel, PANEL_PADDING, SectionHeading } from '@/components/dashboard-primitives/Panel'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -41,8 +42,8 @@ function formatRange(start: string, end: string): string {
 function RestingState({ title, description }: { title: string; description: string }) {
   return (
     <div className="flex flex-col items-center rounded-lg border border-dashed bg-secondary/30 px-6 py-10 text-center">
-      <span className="flex size-10 items-center justify-center rounded-full bg-brand-teal/10">
-        <CheckCircleIcon className="size-5 text-brand-teal-deep" aria-hidden="true" />
+      <span className="flex size-10 items-center justify-center">
+        <CheckCircleIcon className="size-7 text-brand-teal-deep" aria-hidden="true" />
       </span>
       <p className="mt-3 text-sm font-medium">{title}</p>
       <p className="mt-1 max-w-xs text-sm text-muted-foreground">{description}</p>
@@ -223,8 +224,8 @@ export function StaffingWarnings({
                 {index > 0 && <Separator />}
                 <div className="py-2.5">
                   <div className="flex items-center gap-3">
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-destructive/10">
-                      <ExclamationTriangleIcon className="size-4 text-destructive" aria-hidden="true" />
+                    <span className="flex size-9 shrink-0 items-center justify-center">
+                      <ExclamationTriangleIcon className="size-6 text-destructive" aria-hidden="true" />
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium">

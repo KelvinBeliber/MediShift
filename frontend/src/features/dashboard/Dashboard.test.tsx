@@ -56,7 +56,15 @@ function signIn(keys: PermissionKey[], { withEmployee = true } = {}) {
  * would silently shadow a test's own more specific one.
  */
 function selfScopedHandlers({ unreadCount = 0 } = {}) {
-  return [http.get(`${API_URL}/notifications`, () => envelope({ notifications: [], unreadCount }))]
+  return [
+    http.get(`${API_URL}/notifications`, () => envelope({ notifications: [], unreadCount })),
+    http.get(`${API_URL}/attendance/today`, () => envelope(null)),
+    http.get(`${API_URL}/attendance/mine`, () =>
+      envelope([], { page: 1, limit: 100, total: 0, totalPages: 1 }),
+    ),
+    http.get(`${API_URL}/shift-swaps`, () => envelope([], { page: 1, limit: 50, total: 0, totalPages: 1 })),
+    http.get(`${API_URL}/messages/conversations`, () => envelope([])),
+  ]
 }
 
 function leaveHandler(requests: unknown[] = []) {
