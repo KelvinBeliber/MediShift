@@ -1,11 +1,8 @@
 import { useMemo, useState } from 'react'
 import type { ComponentType, SVGProps } from 'react'
+import { Area, AreaChart as RechartsAreaChart, CartesianGrid, Tooltip, XAxis } from 'recharts'
 import { ClipboardDocumentCheckIcon, ClockIcon, UserGroupIcon } from '@heroicons/react/24/outline'
-import { AreaChart } from '@/components/charts/area-chart'
-import { Area } from '@/components/charts/area'
-import { Grid } from '@/components/charts/grid'
-import { XAxis } from '@/components/charts/x-axis'
-import { ChartTooltip } from '@/components/charts/tooltip'
+import { ChartContainer, type ChartConfig } from '@/components/ui/chart'
 import { Panel, PANEL_PADDING_FOCAL, PanelLabel } from '@/components/dashboard-primitives/Panel'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -30,10 +27,10 @@ import type { AttendanceTrendPoint, OvertimeTrendPoint, ShiftCoveragePoint } fro
  *
  * ## Interaction
  *
- * Bklit's `ChartTooltip` supplies the whole hover layer: a vertical crosshair,
- * per-series dots that ride the curve, a floating panel, and the date pill on
- * the x-axis. `rows` formats each series with its own unit so the tooltip reads
- * as a sentence ("Assigned 7 · Required 8") rather than as bare numbers.
+ * Built on shadcn's chart primitives (`@/components/ui/chart`, Recharts under
+ * the hood). `<AnalyticsTooltip>` formats each series with its own unit so the
+ * hover panel reads as a sentence ("Assigned 7 · Required 8") rather than as
+ * bare numbers, mirroring the row shape the previous chart engine used.
  */
 
 type SeriesKey = 'attendance' | 'overtime' | 'coverage'
@@ -71,6 +68,96 @@ const SERIES: SeriesSpec[] = [
   },
 ]
 
+const dateTickFormatter = (value: Date) =>
+  value.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+
+interface TooltipRow {
+  color: string
+  label: string
+  value: string | number
+}
+
+const CHART_CONFIGS: Record<SeriesKey, ChartConfig> = {
+  attendance: {
+    present: { label: 'Present', color: 'var(--color-brand-teal)' },
+    late: { label: 'Late', color: 'var(--color-shift-night)' },
+  },
+  overtime: {
+    overtimeHours: { label: 'Overtime', color: 'var(--color-shift-afternoon)' },
+  },
+  coverage: {
+    assignedStaff: { label: 'Assigned', color: 'var(--color-brand-teal)' },
+    requiredStaff: { label: 'Required', color: 'var(--color-muted-foreground)' },
+  },
+}
+
+function rowsForPoint(active: SeriesKey, point: Record<string, unknown>): TooltipRow[] {
+  if (active === 'attendance') {
+    return [
+      { color: 'var(--color-brand-teal)', label: 'Present', value: Number(point.present) },
+      { color: 'var(--color-shift-night)', label: 'Late', value: Number(point.late) },
+    ]
+  }
+  if (active === 'overtime') {
+    return [
+      {
+        color: 'var(--color-shift-afternoon)',
+        label: 'Overtime',
+        value: `${Number(point.overtimeHours).toFixed(1)}h`,
+      },
+    ]
+  }
+  const assigned = Number(point.assignedStaff)
+  const required = Number(point.requiredStaff)
+  return [
+    { color: 'var(--color-brand-teal)', label: 'Assigned', value: assigned },
+    { color: 'var(--color-muted-foreground)', label: 'Required', value: required },
+    ...(assigned < required
+      ? [{ color: 'var(--color-destructive)', label: 'Short by', value: required - assigned }]
+      : []),
+  ]
+}
+
+interface AnalyticsTooltipProps {
+  active?: boolean
+  payload?: Array<{ payload: Record<string, unknown> }>
+  seriesKey: SeriesKey
+}
+
+function AnalyticsTooltip({ active, payload, seriesKey }: AnalyticsTooltipProps) {
+  if (!active || !payload?.length) {
+    return null
+  }
+  const point = payload[0]?.payload as Record<string, unknown> | undefined
+  if (!point) {
+    return null
+  }
+  const date = point.date instanceof Date ? point.date : new Date(point.date as string)
+
+  return (
+    <div className="min-w-[9rem] rounded-lg border border-border/50 bg-background px-3 py-2 text-xs shadow-xl">
+      <div className="mb-1.5 font-medium text-foreground">
+        {date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+      </div>
+      <div className="grid gap-1">
+        {rowsForPoint(seriesKey, point).map((row) => (
+          <div key={row.label} className="flex items-center justify-between gap-4">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <span
+                className="h-2 w-2 shrink-0 rounded-full"
+                style={{ backgroundColor: row.color }}
+                aria-hidden="true"
+              />
+              {row.label}
+            </span>
+            <span className="font-medium text-foreground tabular-nums">{row.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function AnalyticsPanel({
   attendance,
   overtime,
@@ -88,7 +175,7 @@ export function AnalyticsPanel({
 }) {
   const [active, setActive] = useState<SeriesKey>('attendance')
 
-  const points = useMemo(() => {
+  const points = useMemo((): Record<string, unknown>[] => {
     if (active === 'attendance') {
       return attendance.map((p) => ({
         date: new Date(p.date),
@@ -175,106 +262,102 @@ export function AnalyticsPanel({
             <p className="mt-1 max-w-sm text-sm text-muted-foreground">{spec.empty}</p>
           </div>
         ) : (
-          <AreaChart
-            data={points}
-            xDataKey="date"
-            aspectRatio="16 / 4.6"
-            margin={{ top: 16, right: 16, bottom: 32, left: 16 }}
-          >
-            <Grid />
-            <XAxis numTicks={5} />
+          <ChartContainer config={CHART_CONFIGS[active]} className="h-[230px] w-full">
+            <RechartsAreaChart data={points} margin={{ top: 16, right: 16, bottom: 8, left: 16 }}>
+              <defs>
+                <linearGradient id="fillPresent" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--color-brand-teal)" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="var(--color-brand-teal)" stopOpacity={0.1} />
+                </linearGradient>
+                <linearGradient id="fillLate" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--color-shift-night)" stopOpacity={0.7} />
+                  <stop offset="95%" stopColor="var(--color-shift-night)" stopOpacity={0.05} />
+                </linearGradient>
+                <linearGradient id="fillOvertime" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--color-shift-afternoon)" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="var(--color-shift-afternoon)" stopOpacity={0.1} />
+                </linearGradient>
+                <linearGradient id="fillAssigned" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--color-brand-teal)" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="var(--color-brand-teal)" stopOpacity={0.1} />
+                </linearGradient>
+              </defs>
 
-            {active === 'attendance' && (
-              <>
-                <Area
-                  dataKey="present"
-                  stroke="var(--color-brand-teal)"
-                  fill="var(--color-brand-teal)"
-                  fillOpacity={0.22}
-                  gradientToOpacity={0}
-                  strokeWidth={2.5}
-                />
-                <Area
-                  dataKey="late"
-                  stroke="var(--color-shift-night)"
-                  fill="var(--color-shift-night)"
-                  fillOpacity={0.14}
-                  gradientToOpacity={0}
-                  strokeWidth={2}
-                />
-              </>
-            )}
-
-            {active === 'overtime' && (
-              <Area
-                dataKey="overtimeHours"
-                stroke="var(--color-shift-afternoon)"
-                fill="var(--color-shift-afternoon)"
-                fillOpacity={0.24}
-                gradientToOpacity={0}
-                strokeWidth={2.5}
+              <CartesianGrid vertical={false} strokeDasharray="4 4" />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={10}
+                minTickGap={32}
+                tickFormatter={dateTickFormatter}
               />
-            )}
 
-            {active === 'coverage' && (
-              <>
+              {active === 'attendance' && (
+                <>
+                  <Area
+                    dataKey="present"
+                    type="natural"
+                    fill="url(#fillPresent)"
+                    stroke="var(--color-brand-teal)"
+                    strokeWidth={2.5}
+                    dot={false}
+                    activeDot={{ r: 4 }}
+                  />
+                  <Area
+                    dataKey="late"
+                    type="natural"
+                    fill="url(#fillLate)"
+                    stroke="var(--color-shift-night)"
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 4 }}
+                  />
+                </>
+              )}
+
+              {active === 'overtime' && (
                 <Area
-                  dataKey="assignedStaff"
-                  stroke="var(--color-brand-teal)"
-                  fill="var(--color-brand-teal)"
-                  fillOpacity={0.22}
-                  gradientToOpacity={0}
+                  dataKey="overtimeHours"
+                  type="natural"
+                  fill="url(#fillOvertime)"
+                  stroke="var(--color-shift-afternoon)"
                   strokeWidth={2.5}
+                  dot={false}
+                  activeDot={{ r: 4 }}
                 />
-                <Area
-                  dataKey="requiredStaff"
-                  stroke="var(--color-muted-foreground)"
-                  fill="var(--color-muted-foreground)"
-                  fillOpacity={0}
-                  strokeWidth={1.5}
-                  showLine
-                  dashArray="5,4"
-                  showHighlight={false}
-                />
-              </>
-            )}
+              )}
 
-            <ChartTooltip
-              dotVariant="ring"
-              rows={(point) => {
-                if (active === 'attendance') {
-                  return [
-                    { color: 'var(--color-brand-teal)', label: 'Present', value: Number(point.present) },
-                    { color: 'var(--color-shift-night)', label: 'Late', value: Number(point.late) },
-                  ]
-                }
-                if (active === 'overtime') {
-                  return [
-                    {
-                      color: 'var(--color-shift-afternoon)',
-                      label: 'Overtime',
-                      value: `${Number(point.overtimeHours).toFixed(1)}h`,
-                    },
-                  ]
-                }
-                const assigned = Number(point.assignedStaff)
-                const required = Number(point.requiredStaff)
-                return [
-                  { color: 'var(--color-brand-teal)', label: 'Assigned', value: assigned },
-                  { color: 'var(--color-muted-foreground)', label: 'Required', value: required },
-                  ...(assigned < required
-                    ? [
-                        {
-                          color: 'var(--color-destructive)',
-                          label: 'Short by',
-                          value: required - assigned,
-                        },
-                      ]
-                    : []),
-                ]
-              }}
-            />
-          </AreaChart>
+              {active === 'coverage' && (
+                <>
+                  <Area
+                    dataKey="assignedStaff"
+                    type="natural"
+                    fill="url(#fillAssigned)"
+                    stroke="var(--color-brand-teal)"
+                    strokeWidth={2.5}
+                    dot={false}
+                    activeDot={{ r: 4 }}
+                  />
+                  <Area
+                    dataKey="requiredStaff"
+                    type="natural"
+                    fill="none"
+                    stroke="var(--color-muted-foreground)"
+                    strokeWidth={1.5}
+                    strokeDasharray="5 4"
+                    dot={false}
+                    activeDot={false}
+                  />
+                </>
+              )}
+
+              <Tooltip
+                cursor={{ stroke: 'var(--color-border)', strokeWidth: 1 }}
+                content={<AnalyticsTooltip seriesKey={active} />}
+              />
+            </RechartsAreaChart>
+          </ChartContainer>
         )}
       </div>
 

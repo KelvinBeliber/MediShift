@@ -46,7 +46,7 @@ npm install
 cp .env.example .env
 ```
 
-Edit `backend/.env`. At minimum, set `MONGO_URI`. `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, and `COOKIE_SECRET` have development fallbacks, but **must** be set to unique, 32+ character values before running with `NODE_ENV=production` — the server refuses to boot in production without them. `CLOUDINARY_*` and `SMTP_*` are optional; document uploads and outbound email are disabled until they're configured.
+Edit `backend/.env`. At minimum, set `MONGO_URI`. `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, and `COOKIE_SECRET` have development fallbacks, but **must** be set to unique, 32+ character values before running with `NODE_ENV=production` — the server refuses to boot in production without them. `CLOUDINARY_*` and `SMTP_*` are optional; document uploads and outbound email are disabled until they're configured. `ANTHROPIC_API_KEY` is optional too — set it to enable the [AI Assistant](#ai-assistant), which reports itself unconfigured without one (`ASSISTANT_MODEL` and `ASSISTANT_MAX_TOKENS` are optional overrides, defaulting to `claude-sonnet-4-6` and `8192`).
 
 ```bash
 npm run seed        # roles, permissions, departments, positions, certifications
@@ -178,6 +178,27 @@ Real-time direct messages and department group chat over Socket.io, authenticate
 
 ### Reports & Analytics
 Charts for attendance trends, leave statistics, overtime trends, staffing levels, and department utilization. Reports for attendance, leave, payroll summary, employee performance, and shift coverage — exportable to PDF and Excel.
+
+### AI Assistant
+A manager-facing chat, powered by Claude through the official `@anthropic-ai/sdk`, that answers workforce questions in plain language against live data. Example questions:
+
+- Who worked the most overtime this month?
+- Which department is most understaffed over the next two weeks?
+- Why couldn't an employee be assigned to this shift?
+- Whose certifications expire in the next 60 days?
+
+Claude reaches the data through **seven specific, named tools** — departments, overtime summary, staffing levels, attendance summary, upcoming leave, expiring certifications, and per-shift eligibility — each backed by the same service functions the Reports screen already uses, so the assistant and the charts cannot disagree. Every answer lists the tools it was read from, so a figure can be traced to the query that produced it.
+
+Four properties are enforced in code rather than by prompting, because a prompt is not a security boundary:
+
+- **Read-only.** There is no tool that creates, updates, deletes, publishes, or approves anything, and no write-capable service is imported into the tool module. The capability does not exist to be misused — the assistant cannot generate a schedule, only explain one.
+- **No raw query escape hatch.** Every tool is a fixed question with a validated argument shape. There is no "run this query" tool, so the set of answerable questions is exactly the set enumerated above.
+- **Scoped server-side.** The caller's reach is resolved from their own account before Claude is invoked. Holders of `analytics:view` (HR Manager, Hospital Admin, Super Admin) see every department; a Department Head, who holds only `report:view`, is pinned to their own — if the model asks about another department, the request is silently replaced with theirs and the answer says so.
+- **Salary is out of scope for every role.** It is excluded at the data-assembly layer by allowlisted projections, then scrubbed again from every assembled result on the way out. Prompting is not involved.
+
+Gated on the same `report:view` / `analytics:view` permissions as Reports & Analytics, so Employees and Shift Coordinators cannot see or reach it. Rate-limited to **20 questions per hour per user** — keyed by user id rather than IP, since a hospital's staff share an outbound address. This is the only endpoint in MediShift that costs money per call.
+
+Requires `ANTHROPIC_API_KEY`. Without it the rest of the app is unaffected and the screen says the feature is unconfigured rather than failing on send.
 
 ## Database Collections
 

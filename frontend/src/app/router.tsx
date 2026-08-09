@@ -60,6 +60,8 @@ const AnnouncementsPage = () =>
 const MessagesPage = () => import('@/routes/MessagesPage').then((m) => ({ default: m.MessagesPage }))
 const PayrollPage = () => import('@/routes/PayrollPage').then((m) => ({ default: m.PayrollPage }))
 const ReportsPage = () => import('@/routes/ReportsPage').then((m) => ({ default: m.ReportsPage }))
+const AssistantPage = () =>
+  import('@/routes/AssistantPage').then((m) => ({ default: m.AssistantPage }))
 const ProfilePage = () => import('@/routes/ProfilePage').then((m) => ({ default: m.ProfilePage }))
 const SettingsPage = () => import('@/routes/SettingsPage').then((m) => ({ default: m.SettingsPage }))
 const AuditLogsPage = () => import('@/routes/AuditLogsPage').then((m) => ({ default: m.AuditLogsPage }))
@@ -145,6 +147,14 @@ export const router = createBrowserRouter([
             element: (
               <RequireAnyPermission permissions={ROUTE_PERMISSIONS['/reports']}>
                 {lazyRoute(ReportsPage)}
+              </RequireAnyPermission>
+            ),
+          },
+          {
+            path: '/assistant',
+            element: (
+              <RequireAnyPermission permissions={ROUTE_PERMISSIONS['/assistant']}>
+                {lazyRoute(AssistantPage)}
               </RequireAnyPermission>
             ),
           },

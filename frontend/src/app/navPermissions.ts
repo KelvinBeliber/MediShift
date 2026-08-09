@@ -19,6 +19,10 @@ export const ROUTE_PERMISSIONS = {
   '/schedules': ['schedule:view'],
   '/payroll': ['payroll:view'],
   '/reports': ['report:view', 'analytics:view'],
+  // Same keys as Reports, deliberately: the assistant answers from the same
+  // data behind the same gate, so it can never reach further than the Reports
+  // screen already does. Employees and Shift Coordinators hold neither.
+  '/assistant': ['report:view', 'analytics:view'],
   '/settings': ['system_settings:manage'],
   '/audit-logs': ['audit_log:view'],
 } as const satisfies Record<string, readonly PermissionKey[]>

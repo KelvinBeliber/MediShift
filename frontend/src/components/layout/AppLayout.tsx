@@ -16,6 +16,7 @@ import {
   Cog6ToothIcon,
   HomeIcon,
   MegaphoneIcon,
+  SparklesIcon,
   SunIcon,
   UserCircleIcon,
   UsersIcon,
@@ -61,7 +62,17 @@ interface NavSection {
  * item with no entry there is reachable by every authenticated role.
  */
 const NAV_SECTIONS: NavSection[] = [
-  { label: 'Overview', items: [{ to: '/dashboard', label: 'Dashboard', icon: HomeIcon }] },
+  {
+    label: 'Overview',
+    items: [
+      { to: '/dashboard', label: 'Dashboard', icon: HomeIcon },
+      // Sits beside the Dashboard rather than under Admin: both answer "what is
+      // happening on the wards", and the assistant is the fast path to the same
+      // figures the Reports screen charts. Gated on the same permissions as
+      // Reports via ROUTE_PERMISSIONS, so it is absent for Employees entirely.
+      { to: '/assistant', label: 'AI Assistant', icon: SparklesIcon },
+    ],
+  },
   {
     label: 'Workforce',
     items: [
