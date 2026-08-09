@@ -4,14 +4,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'motion/react'
 import { z } from 'zod'
+import { PencilIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline'
 import {
   ExclamationTriangleIcon,
   MegaphoneIcon,
-  PencilIcon,
-  PlusIcon,
   SignalIcon,
-  TrashIcon,
-} from '@heroicons/react/24/outline'
+} from '@heroicons/react/24/solid'
 import { toast } from 'sonner'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { EmptyState } from '@/components/data/EmptyState'
@@ -39,11 +37,11 @@ import { cn } from '@/lib/utils'
 // being important isn't a good outcome, it's an attention level. `warning`
 // is the correct rung between a routine notice and a true emergency.
 const PRIORITY_META = {
-  normal: { icon: MegaphoneIcon, chip: 'bg-muted text-muted-foreground', badge: 'outline' as const, label: 'Notice' },
-  important: { icon: SignalIcon, chip: 'bg-amber-100 text-amber-800', badge: 'warning' as const, label: 'Important' },
+  normal: { icon: MegaphoneIcon, chip: 'text-muted-foreground', badge: 'outline' as const, label: 'Notice' },
+  important: { icon: SignalIcon, chip: 'text-amber-600', badge: 'warning' as const, label: 'Important' },
   emergency: {
     icon: ExclamationTriangleIcon,
-    chip: 'bg-destructive/10 text-destructive',
+    chip: 'text-destructive',
     badge: 'destructive' as const,
     label: 'Emergency',
   },
@@ -189,8 +187,8 @@ export function AnnouncementsPage() {
                 className={PANEL_PADDING}
               >
                 <div className="flex items-start gap-3">
-                  <span className={cn('flex size-9 shrink-0 items-center justify-center rounded-lg', meta.chip)}>
-                    <Icon className="size-4.5" aria-hidden="true" />
+                  <span className="flex size-9 shrink-0 items-center justify-center">
+                    <Icon className={cn('size-6', meta.chip)} aria-hidden="true" />
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">

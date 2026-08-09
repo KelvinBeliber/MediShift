@@ -51,6 +51,16 @@
   --color-shift-afternoon: oklch(0.6009 0.1245 237.02);
   --color-shift-night: oklch(0.5594 0.1763 283.69);
 
+  /* Achievement accent — earned/gamified moments only (streak flame, badge
+     tiers, milestone celebration on the employee dashboard). A fourth accent
+     on top of navy/green/teal, scoped as narrowly as the Shift Scale: it
+     appears only beside a figure computed from real attendance/swap data,
+     never as decoration. Same two-step shape as the Two-Green/Two-Teal
+     rules — `amber` is the bright fill (icon chips, ring sweep), `amber-deep`
+     (7.1:1 on white) is the one that carries text. */
+  --color-achievement-amber: #f59e0b;
+  --color-achievement-amber-deep: #92400e;
+
   /* Overlays only. Tinted with the brand navy so shadows read cool. */
   --shadow-overlay:
     0 12px 32px -8px rgba(5, 25, 45, 0.18),

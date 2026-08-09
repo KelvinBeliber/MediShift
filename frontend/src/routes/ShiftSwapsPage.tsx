@@ -10,6 +10,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { EmptyState } from '@/components/data/EmptyState'
 import { Stepper, type StepperStep } from '@/components/data/Stepper'
 import { Panel } from '@/components/dashboard-primitives/Panel'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -27,6 +28,7 @@ import { ShiftSwapStatusBadge } from '@/features/shiftSwaps/ShiftSwapStatusBadge
 import type { ShiftSwapRequest } from '@/features/shiftSwaps/types'
 import { toApiError } from '@/lib/api/errors'
 import { staggerContainer } from '@/lib/motion'
+import { initials } from '@/lib/utils'
 
 function shiftLabel(shift: ShiftSwapRequest['requestingShift']): string {
   if (typeof shift === 'string') return shift
@@ -38,6 +40,19 @@ function employeeLabel(employee: ShiftSwapRequest['requestingEmployee'] | undefi
   if (!employee) return '—'
   if (typeof employee === 'string') return employee
   return `${employee.firstName} ${employee.lastName}`
+}
+
+function EmployeeCell({ employee }: { employee: ShiftSwapRequest['requestingEmployee'] | undefined }) {
+  const name = employeeLabel(employee)
+  if (name === '—') return <span className="text-muted-foreground">—</span>
+  return (
+    <div className="flex items-center gap-2">
+      <Avatar size="sm">
+        <AvatarFallback>{initials(name)}</AvatarFallback>
+      </Avatar>
+      {name}
+    </div>
+  )
 }
 
 function isoDate(offsetDays: number): string {
@@ -455,10 +470,14 @@ export function ShiftSwapsPage() {
 
                   return (
                     <TableRow key={swap.id}>
-                      <TableCell>{employeeLabel(swap.requestingEmployee)}</TableCell>
+                      <TableCell>
+                        <EmployeeCell employee={swap.requestingEmployee} />
+                      </TableCell>
                       <TableCell className="text-sm tabular-nums">{shiftLabel(swap.requestingShift)}</TableCell>
                       <TableCell>
-                        {swap.targetEmployee ? employeeLabel(swap.targetEmployee) : (
+                        {swap.targetEmployee ? (
+                          <EmployeeCell employee={swap.targetEmployee} />
+                        ) : (
                           <span className="text-muted-foreground">Open</span>
                         )}
                       </TableCell>

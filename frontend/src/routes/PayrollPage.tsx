@@ -10,6 +10,7 @@ import { toast } from 'sonner'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { EmptyState } from '@/components/data/EmptyState'
 import { Panel, PANEL_PADDING, PanelLabel } from '@/components/dashboard-primitives/Panel'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DatePicker } from '@/components/ui/date-picker'
@@ -24,6 +25,7 @@ import { payrollApi } from '@/features/payroll/api'
 import { PAYROLL_STATUSES, type PayrollInput, type PayrollStatus } from '@/features/payroll/types'
 import { toApiError } from '@/lib/api/errors'
 import { staggerContainer } from '@/lib/motion'
+import { initials } from '@/lib/utils'
 
 const STATUS_VARIANT: Record<PayrollStatus, 'outline' | 'success' | 'default'> = {
   draft: 'outline',
@@ -229,7 +231,14 @@ export function PayrollPage() {
               <TableBody>
                 {rows.map((r) => (
                   <TableRow key={r.id}>
-                    <TableCell className="font-medium">{employeeName(r.employee)}</TableCell>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <Avatar size="sm">
+                          <AvatarFallback>{initials(employeeName(r.employee))}</AvatarFallback>
+                        </Avatar>
+                        {employeeName(r.employee)}
+                      </div>
+                    </TableCell>
                     <TableCell className="text-sm tabular-nums">
                       {new Date(r.periodStart).toLocaleDateString()} – {new Date(r.periodEnd).toLocaleDateString()}
                     </TableCell>

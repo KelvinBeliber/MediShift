@@ -15,6 +15,7 @@ import { EmptyState } from '@/components/data/EmptyState'
 import { Stepper, type StepperStep } from '@/components/data/Stepper'
 import { LeaveStatusBadge } from '@/features/leave/LeaveStatusBadge'
 import { HrApproveWarningDialog } from '@/features/leave/HrApproveWarningDialog'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { DatePicker } from '@/components/ui/date-picker'
 import { Textarea } from '@/components/ui/textarea'
@@ -46,6 +47,7 @@ import { leaveApi } from '@/features/leave/api'
 import { LEAVE_TYPES, type LeaveRequest } from '@/features/leave/types'
 import { employeesApi } from '@/features/employees/api'
 import { toApiError } from '@/lib/api/errors'
+import { initials } from '@/lib/utils'
 
 const requestSchema = z
   .object({
@@ -216,7 +218,20 @@ export function LeavePage() {
               <TableRow key={req.id}>
                 {canApprove && (
                   <TableCell>
-                    {typeof req.employee === 'string' ? req.employee : `${req.employee.firstName} ${req.employee.lastName}`}
+                    {(() => {
+                      const name =
+                        typeof req.employee === 'string'
+                          ? req.employee
+                          : `${req.employee.firstName} ${req.employee.lastName}`
+                      return (
+                        <div className="flex items-center gap-2">
+                          <Avatar size="sm">
+                            <AvatarFallback>{initials(name)}</AvatarFallback>
+                          </Avatar>
+                          {name}
+                        </div>
+                      )
+                    })()}
                   </TableCell>
                 )}
                 <TableCell className="capitalize">{req.leaveType}</TableCell>

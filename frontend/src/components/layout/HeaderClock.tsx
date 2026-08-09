@@ -23,7 +23,7 @@ export function HeaderClock() {
 
   return (
     <div className="hidden flex-col items-end leading-tight md:flex">
-      <span className="text-sm font-medium text-topbar-foreground">{timeFormatter.format(now)}</span>
+      <span className="text-sm font-medium tabular-nums text-topbar-foreground">{timeFormatter.format(now)}</span>
       <span className="text-xs text-topbar-foreground/60">{dateFormatter.format(now)}</span>
     </div>
   )
