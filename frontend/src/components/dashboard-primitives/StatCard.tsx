@@ -37,14 +37,11 @@ import { cn } from '@/lib/utils'
 
 export type StatTone = 'default' | 'positive' | 'attention'
 
-/**
- * Icon-chip tints. Each tone is a tinted ground plus a matching stroke, never a
- * saturated fill — the chip marks the metric's kind, it is not a button.
- */
-const CHIP: Record<StatTone, string> = {
-  default: 'bg-brand-teal/10 text-brand-teal-deep',
-  positive: 'bg-brand-teal/10 text-brand-teal-deep',
-  attention: 'bg-destructive/10 text-destructive',
+/** Icon colour per tone. Plain glyph, no fill chip behind it. */
+const ICON_TONE: Record<StatTone, string> = {
+  default: 'text-brand-teal-deep',
+  positive: 'text-brand-teal-deep',
+  attention: 'text-destructive',
 }
 
 export interface StatDelta {
@@ -140,10 +137,8 @@ export function StatCard({
         )}
 
         {Icon && (
-          <span
-            className={cn('flex size-8 shrink-0 items-center justify-center rounded-lg', CHIP[tone])}
-          >
-            <Icon className="size-4" aria-hidden="true" />
+          <span className="flex size-8 shrink-0 items-center justify-center">
+            <Icon className={cn('size-5', ICON_TONE[tone])} aria-hidden="true" />
           </span>
         )}
       </div>

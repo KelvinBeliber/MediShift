@@ -2,14 +2,20 @@ import { useEffect, useMemo, useReducer, useState } from 'react'
 import { Link } from 'react-router'
 import NumberFlow, { continuous } from '@number-flow/react'
 import { motion, useReducedMotion } from 'motion/react'
+import { ArrowRightIcon } from '@heroicons/react/24/outline'
 import {
-  ArrowRightIcon,
+  CalendarDaysIcon,
   ChatBubbleLeftRightIcon,
-  ClockIcon as ClockIconOutline,
+  ClockIcon,
+  CloudIcon,
+  FireIcon,
+  HandRaisedIcon,
   InboxIcon,
+  MoonIcon,
   PaperAirplaneIcon,
-} from '@heroicons/react/24/outline'
-import { CalendarDaysIcon, FireIcon, HandRaisedIcon, SparklesIcon } from '@heroicons/react/24/solid'
+  SparklesIcon,
+  SunIcon,
+} from '@heroicons/react/24/solid'
 import { ConfettiBurst } from '@/components/dashboard-primitives/ConfettiBurst'
 import { Panel, PANEL_PADDING, PANEL_PADDING_FOCAL, PanelLabel, SectionHeading } from '@/components/dashboard-primitives/Panel'
 import { StatCard, StatCardSkeleton } from '@/components/dashboard-primitives/StatCard'
@@ -32,14 +38,14 @@ import { staggerContainer } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
 /** The shift scale, per DESIGN.md's Shift Scale Rule. Types outside the three are neutral. */
-const SHIFT_STYLE: Record<string, { dot: string; chip: string }> = {
-  morning: { dot: 'bg-shift-morning', chip: 'bg-shift-morning/10 text-shift-morning' },
-  afternoon: { dot: 'bg-shift-afternoon', chip: 'bg-shift-afternoon/10 text-shift-afternoon' },
-  night: { dot: 'bg-shift-night', chip: 'bg-shift-night/10 text-shift-night' },
+const SHIFT_STYLE: Record<string, { icon: typeof SunIcon; tint: string }> = {
+  morning: { icon: SunIcon, tint: 'text-shift-morning' },
+  afternoon: { icon: CloudIcon, tint: 'text-shift-afternoon' },
+  night: { icon: MoonIcon, tint: 'text-shift-night' },
 }
 
 function shiftStyle(type: string) {
-  return SHIFT_STYLE[type] ?? { dot: 'bg-muted-foreground', chip: 'bg-muted text-muted-foreground' }
+  return SHIFT_STYLE[type] ?? { icon: ClockIcon, tint: 'text-muted-foreground' }
 }
 
 function formatShiftDate(iso: string): { label: string; isSoon: boolean } {
@@ -158,13 +164,8 @@ export function UpcomingShifts({
               <li key={shift.id}>
                 {index > 0 && <Separator />}
                 <div className="flex items-center gap-3 py-2.5">
-                  <span
-                    className={cn(
-                      'flex size-10 shrink-0 flex-col items-center justify-center rounded-lg',
-                      style.chip,
-                    )}
-                  >
-                    <span className={cn('size-2 rounded-full', style.dot)} aria-hidden="true" />
+                  <span className="flex size-10 shrink-0 items-center justify-center">
+                    <style.icon className={cn('size-6', style.tint)} aria-hidden="true" />
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="flex items-center gap-2 truncate text-sm font-medium">
@@ -306,7 +307,7 @@ export function HoursLogged({
       value={hours}
       unit="h"
       decimals={1}
-      icon={ClockIconOutline}
+      icon={ClockIcon}
       context="Last 7 days"
     />
   )
@@ -445,10 +446,7 @@ function StreakSpotlight({
 
   const todayStatus = canRecordAttendance ? describeToday(todayRecord, new Date()) : null
   const subtitle = streakSubtitle(highlights, tier)
-  const flameTint =
-    tier === 'none'
-      ? 'bg-muted text-muted-foreground'
-      : 'bg-achievement-amber/12 text-achievement-amber-deep'
+  const flameTint = tier === 'none' ? 'text-muted-foreground' : 'text-achievement-amber-deep'
 
   return (
     <Panel
@@ -463,8 +461,8 @@ function StreakSpotlight({
             <span id="streak-heading">Your streak</span>
           </PanelLabel>
           <div className="mt-2.5 flex items-end gap-3.5">
-            <span className={cn('relative flex size-14 shrink-0 items-center justify-center rounded-2xl', flameTint)}>
-              <FireIcon className="size-7" aria-hidden="true" />
+            <span className="relative flex size-14 shrink-0 items-center justify-center">
+              <FireIcon className={cn('size-10', flameTint)} aria-hidden="true" />
               {celebrate && !prefersReducedMotion && <ConfettiBurst />}
             </span>
             <div>
