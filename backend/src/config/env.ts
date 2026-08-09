@@ -78,4 +78,19 @@ export const env = {
     url: process.env.SCHEDULING_SERVICE_URL ?? 'http://localhost:8000',
     apiKey: process.env.SCHEDULING_SERVICE_API_KEY ?? '',
   },
+
+  /**
+   * The AI Assistant. Unset is a supported state — the feature reports itself
+   * unavailable rather than the server refusing to boot, because every other
+   * screen in the app works fine without it.
+   */
+  anthropic: {
+    apiKey: process.env.ANTHROPIC_API_KEY ?? '',
+    model: process.env.ASSISTANT_MODEL ?? 'claude-sonnet-4-6',
+    /**
+     * A ceiling on thinking *and* answer text together, so the budget has to
+     * cover both — sized to the answer alone it would truncate mid-sentence.
+     */
+    maxTokens: Number(process.env.ASSISTANT_MAX_TOKENS ?? 8192),
+  },
 };
