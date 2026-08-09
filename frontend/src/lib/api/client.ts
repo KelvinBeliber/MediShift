@@ -65,11 +65,31 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
  */
 let refreshInFlight: Promise<string> | null = null
 
+/**
+ * Bumped on sign-out. A refresh that was already in flight when the user signed
+ * out will still resolve with a usable access token; without this check it would
+ * write that token back into the store *after* the session was cleared, leaving
+ * the app quietly signed in again. Comparing the epoch the refresh started under
+ * against the current one lets that late result be discarded.
+ */
+let sessionEpoch = 0
+
+/** Invalidate any in-flight refresh. Call when the session is torn down. */
+export function resetAuthClient(): void {
+  sessionEpoch += 1
+  refreshInFlight = null
+}
+
 function refreshAccessToken(): Promise<string> {
+  const epoch = sessionEpoch
+
   refreshInFlight ??= refreshClient
-    .post<ApiSuccess<{ accessToken: string; refreshToken: string }>>('/auth/refresh')
+    .post<ApiSuccess<{ accessToken: string }>>('/auth/refresh')
     .then((response) => {
       const token = response.data.data.accessToken
+      if (epoch !== sessionEpoch) {
+        throw toApiError(new Error('Session ended while refreshing'))
+      }
       bridge.setAccessToken(token)
       return token
     })

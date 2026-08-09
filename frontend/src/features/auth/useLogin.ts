@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 import { authApi } from './api'
 import { useAuthStore } from './store'
+import { queryClient } from '@/lib/query'
 import type { AuthUser, LoginCredentials } from './types'
 
 /**
@@ -16,6 +17,12 @@ import type { AuthUser, LoginCredentials } from './types'
  * If `/me` fails after a successful login, the session is torn back down rather
  * than left half-built with a token but no user; the guards key off `user`, so
  * a half-built session would bounce the user to /login with no explanation.
+ *
+ * The query cache is cleared as soon as login succeeds, before anything can
+ * query with the new token — otherwise a second account signing in on the
+ * same device (without an intervening logout, e.g. after a session expired)
+ * would render the previous user's cached queries (messages, "me", ...) until
+ * each one happened to refetch.
  */
 export function useLogin() {
   const setAccessToken = useAuthStore((s) => s.setAccessToken)
@@ -25,6 +32,7 @@ export function useLogin() {
   return useMutation<AuthUser, unknown, LoginCredentials>({
     mutationFn: async (credentials) => {
       const { accessToken } = await authApi.login(credentials)
+      queryClient.clear()
       setAccessToken(accessToken)
 
       try {

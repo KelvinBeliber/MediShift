@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
-import { CheckCircleIcon, LinkIcon } from '@heroicons/react/24/outline'
+import { CheckCircleIcon, LinkIcon } from '@heroicons/react/24/solid'
 import Loader from '@/components/kokonutui/loader'
 import { AuthCard } from '@/components/auth/AuthCard'
 import { AuthLayout } from '@/components/auth/AuthLayout'
@@ -75,8 +75,8 @@ export function VerifyEmailPage() {
           description="Thanks — the address on your MediShift account is confirmed."
           footer={<AuthLink to="/login">Continue to sign in</AuthLink>}
         >
-          <div className="flex size-11 items-center justify-center rounded-full bg-primary/8 text-primary">
-            <CheckCircleIcon className="size-5" aria-hidden="true" />
+          <div className="flex size-11 items-center justify-center text-primary">
+            <CheckCircleIcon className="size-8" aria-hidden="true" />
           </div>
         </AuthCard>
       </AuthLayout>
@@ -92,8 +92,8 @@ export function VerifyEmailPage() {
         footer={<AuthLink to="/login">Continue to sign in</AuthLink>}
       >
         <div className="space-y-5">
-          <div className="flex size-11 items-center justify-center rounded-full bg-destructive/8 text-destructive">
-            <LinkIcon className="size-5" aria-hidden="true" />
+          <div className="flex size-11 items-center justify-center text-destructive">
+            <LinkIcon className="size-8" aria-hidden="true" />
           </div>
 
           {/* There is no resend-verification endpoint — `buildVerificationEmail`

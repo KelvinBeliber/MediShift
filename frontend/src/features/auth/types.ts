@@ -70,9 +70,13 @@ export interface LoginUser {
   isEmailVerified: boolean
 }
 
+/**
+ * No `refreshToken` field: the refresh token is delivered only as an httpOnly
+ * cookie and is deliberately never exposed to script, so page JavaScript (and
+ * therefore any XSS) cannot read the long-lived credential.
+ */
 export interface LoginResponse {
   accessToken: string
-  refreshToken: string
   user: LoginUser
 }
 

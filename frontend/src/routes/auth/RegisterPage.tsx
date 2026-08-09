@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
-import { EnvelopeOpenIcon } from '@heroicons/react/24/outline'
+import { EnvelopeOpenIcon } from '@heroicons/react/24/solid'
 import { AuthCard } from '@/components/auth/AuthCard'
 import { AuthLayout } from '@/components/auth/AuthLayout'
 import { AuthLink } from '@/components/auth/AuthLink'
@@ -103,8 +103,8 @@ export function RegisterPage() {
           }
         >
           <div className="space-y-5">
-            <div className="flex size-11 items-center justify-center rounded-full bg-primary/8 text-primary">
-              <EnvelopeOpenIcon className="size-5" aria-hidden="true" />
+            <div className="flex size-11 items-center justify-center text-primary">
+              <EnvelopeOpenIcon className="size-8" aria-hidden="true" />
             </div>
 
             <p className="text-[0.9375rem] leading-relaxed text-muted-foreground">

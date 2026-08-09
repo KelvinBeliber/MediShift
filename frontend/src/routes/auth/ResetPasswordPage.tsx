@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate, useSearchParams } from 'react-router'
-import { CheckCircleIcon, LinkIcon } from '@heroicons/react/24/outline'
+import { CheckCircleIcon, LinkIcon } from '@heroicons/react/24/solid'
 import { AuthCard } from '@/components/auth/AuthCard'
 import { AuthLayout } from '@/components/auth/AuthLayout'
 import { AuthLink } from '@/components/auth/AuthLink'
@@ -80,8 +80,8 @@ export function ResetPasswordPage() {
           footer={<AuthLink to="/login">Back to sign in</AuthLink>}
         >
           <div className="space-y-5">
-            <div className="flex size-11 items-center justify-center rounded-full bg-destructive/8 text-destructive">
-              <LinkIcon className="size-5" aria-hidden="true" />
+            <div className="flex size-11 items-center justify-center text-destructive">
+              <LinkIcon className="size-8" aria-hidden="true" />
             </div>
             <AuthLink to="/forgot-password" className="inline-block">
               Request a new reset link
@@ -102,8 +102,8 @@ export function ResetPasswordPage() {
           footer={<AuthLink to="/login">Continue to sign in</AuthLink>}
         >
           <div className="space-y-5">
-            <div className="flex size-11 items-center justify-center rounded-full bg-primary/8 text-primary">
-              <CheckCircleIcon className="size-5" aria-hidden="true" />
+            <div className="flex size-11 items-center justify-center text-primary">
+              <CheckCircleIcon className="size-8" aria-hidden="true" />
             </div>
             <p className="text-[0.9375rem] text-muted-foreground" role="status">
               Taking you to sign in…
