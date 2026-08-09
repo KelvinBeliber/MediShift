@@ -1,437 +1,206 @@
-# MediShift - AI-Powered Healthcare Workforce Management System
+# MediShift — AI-Powered Healthcare Workforce Management
 
-## Overview
-MediShift is a full-stack healthcare workforce management platform designed for hospitals and healthcare organizations. The system centralizes employee management, intelligent shift scheduling, attendance tracking, leave management, payroll preparation, and analytics into a single application.
+MediShift is a full-stack workforce management platform for hospitals and healthcare organizations. It centralizes employee management, intelligent shift scheduling, attendance tracking, leave management, payroll preparation, and analytics into a single application.
 
-The core feature is an AI-assisted scheduling engine powered by Google OR-Tools CP-SAT, which automatically generates optimized monthly schedules while respecting staffing requirements, employee availability, labor regulations, certifications, and fairness constraints.
+The core feature is an AI-assisted scheduling engine powered by **Google OR-Tools CP-SAT**, which generates optimized monthly schedules while respecting staffing requirements, employee availability, labor regulations, certifications, and fairness constraints — and reports honestly when a schedule is infeasible instead of silently violating constraints.
 
-The goal is to build an enterprise-grade SaaS application that demonstrates modern software engineering practices, scalable architecture, and real-world business workflows.
+## Architecture
+
+MediShift runs as three services:
+
+| Service | Stack | Default URL | Purpose |
+|---|---|---|---|
+| `backend/` | Node.js, Express, TypeScript, MongoDB | `http://localhost:5000` | Main API — auth, employees, schedules, attendance, leave, payroll, messaging (Socket.io) |
+| `frontend/` | React, TypeScript, Vite | `http://localhost:5173` | Web application |
+| `scheduling-service/` | Python, FastAPI, OR-Tools CP-SAT | `http://localhost:8000` | Internal-only solver. Only the Node API calls it — the frontend never talks to it directly |
+
+```
+Browser  ─────────────▶  Node/Express API  ─────────────▶  Python scheduling service
+(React)     REST/WS        (backend/)         REST            (scheduling-service/)
+                                │
+                                ▼
+                             MongoDB
+```
+
+## Tech Stack
+
+**Frontend** — React, TypeScript, Vite, Tailwind CSS, shadcn/ui, React Router, TanStack Query, Zustand, React Hook Form, Zod, FullCalendar, Framer Motion
+
+**Backend** — Node.js, Express.js, MongoDB, Mongoose, JWT Authentication, Socket.io, Cloudinary, Multer, Nodemailer, Redis (optional), BullMQ (optional)
+
+**Scheduling service** — Python, FastAPI, Google OR-Tools (CP-SAT), Pydantic
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 20+
+- Python 3.11+
+- MongoDB (local instance or a connection string)
+
+### 1. Backend API
+
+```bash
+cd backend
+npm install
+cp .env.example .env
+```
+
+Edit `backend/.env`. At minimum, set `MONGO_URI`. `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, and `COOKIE_SECRET` have development fallbacks, but **must** be set to unique, 32+ character values before running with `NODE_ENV=production` — the server refuses to boot in production without them. `CLOUDINARY_*` and `SMTP_*` are optional; document uploads and outbound email are disabled until they're configured.
+
+```bash
+npm run seed        # roles, permissions, departments, positions, certifications
+npm run seed:demo   # (optional) demo employees, schedules, and sample data
+npm run dev          # http://localhost:5000
+```
+
+### 2. Scheduling service
+
+```bash
+cd scheduling-service
+python -m venv venv
+venv\Scripts\activate        # macOS/Linux: source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+uvicorn app.main:app --reload --port 8000
+```
+
+The `SCHEDULING_SERVICE_API_KEY` in `scheduling-service/.env` must match the same variable in `backend/.env`, or the Node API's schedule-generation requests will be rejected with a 401.
+
+### 3. Frontend
+
+```bash
+cd frontend
+npm install
+cp .env.example .env
+npm run dev          # http://localhost:5173
+```
+
+`VITE_API_URL` must point at the backend's `/api/v1` prefix, and the backend's `CLIENT_URL` must match the Vite dev origin — the API only allows a single CORS origin.
+
+### Default login
+
+After `npm run seed`, a super admin account is created from `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` (set these in `backend/.env`, or check `backend/src/database/seed.ts` for the defaults used when they're omitted).
+
+## Scripts
+
+**Backend** (`backend/`)
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start the API with hot reload |
+| `npm run build` | Compile TypeScript to `dist/` |
+| `npm start` | Run the compiled build |
+| `npm run seed` | Seed roles, permissions, departments, positions, certifications |
+| `npm run seed:demo` | Seed demo employees and sample records |
+| `npm run seed:full` | Seed a full dataset |
+| `npm test` | Run the Jest test suite |
+| `npm run test:coverage` | Run tests with coverage |
+
+**Frontend** (`frontend/`)
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start the Vite dev server |
+| `npm run build` | Type-check and build for production |
+| `npm run typecheck` | Type-check without emitting |
+| `npm run lint` | Lint with oxlint |
+| `npm test` | Run the Vitest suite |
+| `npm run test:coverage` | Run tests with coverage |
+
+**Scheduling service** (`scheduling-service/`)
+
+| Command | Description |
+|---|---|
+| `uvicorn app.main:app --reload --port 8000` | Start the FastAPI service with hot reload |
+| `pytest` | Run the test suite (install `requirements-dev.txt` first) |
+
+## Core Modules
+
+### Authentication & Access Control
+Login, registration, forgot/reset password, email verification, JWT access + refresh tokens, protected routes, role-based access control (RBAC).
+
+Accounts are **HR-provisioned, then claimed**: HR creates the Employee record first, and the employee registers against it with their employee ID and matching email to link a login. Self-registration without that link produces an account with no schedule and no profile.
+
+**Roles** — Super Admin, Hospital Administrator, HR Manager, Department Head, Shift Coordinator, Employee
+
+### Dashboards
+Role-specific dashboards:
+- **Employee** — upcoming shifts, attendance summary, leave balance, notifications, schedule calendar
+- **Manager** (Department Head / Shift Coordinator) — department schedule, pending leave requests, shift conflicts, attendance overview, team statistics
+- **Admin** (Hospital Admin / Super Admin / HR Manager) — employee count, department overview, staffing levels, open shifts, overtime summary, hospital analytics
+
+### Employee Management
+Full CRUD with photo, employee ID, contact and emergency contact info, department, position, employment type, hire date, salary, status, skills, certifications, medical license number, and document uploads (resume, contract, government ID, medical license, certifications, training certificates) via Cloudinary.
+
+### Department & Position Management
+Departments (Emergency, ICU, Operating Room, Pediatrics, Radiology, Laboratory, Cardiology, Neurology, Pharmacy, Reception, Billing, Maintenance, Security) each carry a manager, staff list, schedule, and staffing requirements — the staffing requirements are what the AI generator reads to auto-create shifts.
+
+Positions store salary range, required certifications, required skills, and default working hours.
+
+### Certification Management
+Certifications (ICU Certified, ACLS, BLS, Pediatric Certified, Trauma Certified, Radiology Certified, etc.) are enforced by the scheduling engine — e.g., only ICU-certified nurses can be scheduled into ICU shifts.
+
+### Shift Management
+Shift types: Morning (07:00–15:00), Afternoon (15:00–23:00), Night (23:00–07:00), Weekend, Holiday, On-Call, Overtime, Half Day. Daily/weekly/monthly/timeline calendar views with drag-and-drop editing.
+
+Schedules move through `draft → generated → published` per department, per month. Publishing is one-way and notifies every employee in the department; shift edits are rejected afterward.
+
+### AI Schedule Generator
+The scheduling engine is a real Google OR-Tools CP-SAT constraint solver running as a separate Python service, not a heuristic or template filler. It accounts for:
+
+employee availability, approved/sick leave, required certifications, department assignment, maximum weekly/monthly hours, minimum rest period, maximum consecutive work days, night shift rotation, weekend fairness, public holidays, employee preferences, overtime limits, required staffing levels, and labor regulations.
+
+It returns a solver status (`OPTIMAL` / `FEASIBLE` / `INFEASIBLE`), which specific shifts could not be fully staffed, and coverage statistics — rather than silently producing a schedule that violates constraints. Managers review, edit, and publish the generated schedule.
+
+### Attendance Management
+Clock in/out, break start/end, attendance history. Statuses: Present, Late, Absent, Leave, Holiday, Overtime. Optional GPS verification and QR code attendance.
+
+### Leave Management
+Leave types: Vacation, Sick, Emergency, Maternity, Paternity, Bereavement, Study.
+
+Two-stage approval: **Employee submits → Department Head reviews → HR approves → schedule updates automatically.** HR approval automatically declines any overlapping shift assignments.
+
+### Shift Swap Requests
+`pending → accepted → manager_approved`: employee requests a swap → another employee accepts → manager approves → schedule updates → both employees are notified.
+
+### Payroll Preparation
+Calculates total hours worked, overtime, night differential, holiday hours, tardiness, undertime, and absences. Exports to CSV, Excel, and PDF.
+
+### Notifications
+In-app, email, and browser notifications for: schedule published/changed, leave approved/rejected, shift swap approved, new announcement, upcoming shift reminder.
+
+### Announcements
+Hospital-wide and department-level announcements with priority levels (Normal, Important, Emergency).
+
+### Internal Messaging
+Real-time direct messages and department group chat over Socket.io, authenticated by JWT in the connection handshake.
+
+### Reports & Analytics
+Charts for attendance trends, leave statistics, overtime trends, staffing levels, and department utilization. Reports for attendance, leave, payroll summary, employee performance, and shift coverage — exportable to PDF and Excel.
+
+## Database Collections
+
+`users`, `roles`, `permissions`, `departments`, `positions`, `certifications`, `employees`, `schedules`, `shifts`, `attendance`, `leaveRequests`, `shiftSwapRequests`, `announcements`, `notifications`, `messages`, `payrollInputs`, `documents`, `auditLogs`, `systemSettings`
+
+## Documentation
+
+- [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) — full endpoint reference, auth model, roles & permissions legend
+- [`docs/FRONTEND_STACK.md`](docs/FRONTEND_STACK.md) — frontend architecture and conventions
+- [`docs/FRONTEND_SCREENS.md`](docs/FRONTEND_SCREENS.md) — screen-by-screen frontend spec
+
+## Testing
+
+```bash
+cd backend && npm test
+cd frontend && npm test
+cd scheduling-service && pytest
+```
 
 ## Contributing
 
 Commits in this repository must be authored under a real contributor's git identity — do not attribute commits to Claude or any other AI assistant, even when AI tooling was used to help write the change.
 
-## Tech Stack
-
-### Frontend
-- React
-- TypeScript
-- Vite
-- Tailwind CSS
-- shadcn/ui
-- React Router
-- TanStack Query
-- Zustand
-- React Hook Form
-- Zod
-- FullCalendar
-- Framer Motion
-
-### Backend
-- Node.js
-- Express.js
-- MongoDB
-- Mongoose
-- JWT Authentication
-- Socket.io
-- Google OR-Tools (CP-SAT)
-- Cloudinary
-- Multer
-- Nodemailer
-- Redis (optional)
-- BullMQ (optional)
-
-## Core Modules
-
-### 1. Authentication
-**Features**
-- Login
-- Register
-- Forgot Password
-- Reset Password
-- Email Verification
-- JWT Authentication
-- Refresh Tokens
-- Protected Routes
-- Role-Based Access Control (RBAC)
-
-**Roles**
-- Super Admin
-- Hospital Administrator
-- HR Manager
-- Department Head
-- Shift Coordinator
-- Employee
-
-### 2. Dashboard
-Different dashboards depending on role.
-
-**Employee Dashboard**
-- Upcoming shifts
-- Attendance summary
-- Leave balance
-- Notifications
-- Schedule calendar
-
-**Manager Dashboard**
-- Department schedule
-- Pending leave requests
-- Shift conflicts
-- Attendance overview
-- Team statistics
-
-**Admin Dashboard**
-- Employee count
-- Department overview
-- Staffing levels
-- Open shifts
-- Overtime summary
-- Hospital analytics
-
-### 3. Employee Management
-**Employee Profile**
-- Photo
-- Employee ID
-- Name
-- Email
-- Phone
-- Address
-- Emergency Contact
-- Department
-- Position
-- Employment Type
-- Hire Date
-- Salary (optional)
-- Status
-- Skills
-- Certifications
-- Medical License Number
-- Documents
-
-**Document Upload**
-- Resume
-- Contract
-- Government IDs
-- Medical License
-- Certifications
-- Training Certificates
-
-### 4. Department Management
-**Departments**
-- Emergency
-- ICU
-- Operating Room
-- Pediatrics
-- Radiology
-- Laboratory
-- Cardiology
-- Neurology
-- Pharmacy
-- Reception
-- Billing
-- Maintenance
-- Security
-
-**Each department has**
-- Manager
-- Employees
-- Schedule
-- Staffing requirements
-
-### 5. Position Management
-**Example Positions**
-- Doctor
-- Nurse
-- Resident
-- Intern
-- Pharmacist
-- Laboratory Technician
-- Radiologist
-- Receptionist
-- Security
-- Maintenance
-
-**Each position stores**
-- Salary Range
-- Required Certifications
-- Required Skills
-- Default Working Hours
-
-### 6. Certification Management
-**Examples**
-- ICU Certified
-- ACLS
-- BLS
-- Pediatric Certified
-- Trauma Certified
-- Radiology Certified
-
-Scheduling engine must respect certification requirements.
-Example: Only ICU-certified nurses can be scheduled in ICU.
-
-### 7. Shift Management
-**Shift Types**
-- Morning
-- Afternoon
-- Night
-- Weekend
-- Holiday
-- On-Call
-- Overtime
-- Half Day
-
-**Shift Information**
-- Start Time
-- End Time
-- Department
-- Required Staff
-- Assigned Employees
-
-**Views**
-- Daily
-- Weekly
-- Monthly
-- Timeline
-
-Support drag-and-drop editing.
-
-### 8. AI Schedule Generator (Main Feature)
-Implement automatic schedule generation using Google OR-Tools CP-SAT.
-
-**Scheduling Constraints**
-- Employee availability
-- Approved leave
-- Sick leave
-- Required certifications
-- Department assignment
-- Maximum weekly hours
-- Maximum monthly hours
-- Minimum rest period
-- Maximum consecutive work days
-- Night shift rotation
-- Weekend fairness
-- Public holidays
-- Employee preferences
-- Overtime limits
-- Required staffing levels
-- Labor regulations
-
-The scheduler should automatically generate a complete monthly schedule while minimizing conflicts and balancing workloads fairly.
-Managers can review, edit, and publish the generated schedule.
-
-### 9. Attendance Management
-**Features**
-- Clock In
-- Clock Out
-- Break Start
-- Break End
-- Attendance History
-
-**Statuses**
-- Present
-- Late
-- Absent
-- Leave
-- Holiday
-- Overtime
-
-**Optional Features**
-- GPS Verification
-- QR Code Attendance
-
-### 10. Leave Management
-**Leave Types**
-- Vacation Leave
-- Sick Leave
-- Emergency Leave
-- Maternity Leave
-- Paternity Leave
-- Bereavement Leave
-- Study Leave
-
-**Workflow**
-Employee submits request → Department Head reviews → HR approves → Schedule automatically updates
-
-### 11. Shift Swap Requests
-**Workflow**
-Employee requests shift swap → Another employee accepts → Manager approves → Schedule updates automatically → Notifications sent to both employees
-
-### 12. Payroll Preparation
-Generate payroll input data.
-
-**Calculate**
-- Total Hours Worked
-- Overtime
-- Night Differential
-- Holiday Hours
-- Tardiness
-- Undertime
-- Absences
-
-**Export**
-- CSV
-- Excel
-- PDF
-
-### 13. Notifications
-**Notify users when**
-- Schedule published
-- Schedule changed
-- Leave approved
-- Leave rejected
-- Shift swap approved
-- New announcement
-- Upcoming shift reminder
-
-**Channels**
-- In-App
-- Email
-- Browser Notifications
-
-### 14. Announcements
-- Hospital-wide announcements
-- Department announcements
-- Priority levels: Normal, Important, Emergency
-
-### 15. Internal Messaging
-Real-time messaging using Socket.io
-
-**Support**
-- Direct Messages
-- Department Group Chat
-
-### 16. Reports & Analytics
-**Charts**
-- Attendance Trends
-- Leave Statistics
-- Overtime Trends
-- Staffing Levels
-- Department Utilization
-
-**Reports**
-- Attendance Report
-- Leave Report
-- Payroll Summary
-- Employee Performance
-- Shift Coverage
-
-**Export**
-- PDF
-- Excel
-
-### 17. AI Assistant (Future Version)
-Managers can ask questions like:
-- Who worked the most overtime this month?
-- Which department is understaffed?
-- Generate next month's schedule.
-- Why couldn't an employee be assigned?
-- Show employees nearing overtime limits.
-
-## Database Collections
-- users
-- roles
-- permissions
-- departments
-- positions
-- certifications
-- employees
-- schedules
-- shifts
-- attendance
-- leaveRequests
-- shiftSwapRequests
-- announcements
-- notifications
-- messages
-- payrollInputs
-- documents
-- auditLogs
-- systemSettings
-
-## Application Pages
-- Authentication (Login, Register, Forgot Password, Reset Password)
-- Dashboard
-- Employee Management
-- Employee Details
-- Departments
-- Positions
-- Certifications
-- Schedules
-- Calendar
-- Attendance
-- Leave Requests
-- Shift Swap Requests
-- Announcements
-- Messages
-- Reports
-- Analytics
-- Payroll Inputs
-- Notifications
-- Settings
-- Profile
-- Audit Logs
-
-## Development Roadmap
-
-### Phase 1 - Foundation
-- Authentication
-- User Management
-- Employee Management
-- Departments
-- Roles & Permissions
-
-### Phase 2 - Workforce Management
-- Shift Management
-- Calendar
-- Attendance
-- Leave Requests
-- Shift Swaps
-
-### Phase 3 - AI Scheduling
-- Google OR-Tools CP-SAT Integration
-- Automatic Schedule Generation
-- Constraint Validation
-- Schedule Publishing
-
-### Phase 4 - Communication
-- Notifications
-- Messaging
-- Announcements
-
-### Phase 5 - Analytics
-- Reports
-- Charts
-- Payroll Preparation
-- Dashboard Improvements
-
-### Phase 6 - Polish
-- Responsive Design
-- Animations
-- Accessibility
-- Testing
-- Performance Optimization
-- Deployment
-
 ## Future Enhancements
-- Multi-hospital support
-- SaaS subscriptions
-- Google Calendar integration
-- SMS notifications
-- Face recognition attendance
-- Mobile PWA
-- Offline attendance sync
-- AI staffing forecasts
-- Predictive staffing recommendations
-- Voice-enabled AI assistant
 
-## Primary Goal
-Build an enterprise-level Healthcare Workforce Management System that showcases:
-- Advanced MERN architecture
-- Complex business logic
-- AI-powered scheduling with Google OR-Tools CP-SAT
-- Role-based access control
-- Real-time communication
-- Scalable backend design
-- Professional UI/UX
-- Production-ready code organization
-- Strong portfolio value for senior full-stack engineering roles
+Multi-hospital support, SaaS subscriptions, Google Calendar integration, SMS notifications, face recognition attendance, mobile PWA, offline attendance sync, AI staffing forecasts, predictive staffing recommendations, and a voice-enabled AI assistant.
