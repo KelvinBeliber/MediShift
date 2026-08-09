@@ -20,3 +20,9 @@ export interface SendMessageInput {
   department?: string
   content: string
 }
+
+export interface DirectInboxItem {
+  user: MessageSender
+  lastMessage: Message
+  unreadCount: number
+}
