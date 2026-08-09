@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 import { Message, IMessage } from '@models/Message.model';
 import { ApiError } from '@utils/ApiError';
 import { logger } from '@utils/logger';
@@ -60,6 +61,67 @@ export async function getDepartmentConversation(departmentId: string, pagination
     Message.countDocuments(filter),
   ]);
   return { docs, meta: buildPaginationMeta(pagination.page, pagination.limit, total) };
+}
+
+export async function getDirectInbox(userId: string) {
+  const me = new Types.ObjectId(userId);
+
+  const results = await Message.aggregate([
+    {
+      $match: {
+        conversationType: 'direct',
+        deletedFor: { $ne: me },
+        $or: [{ sender: me }, { recipient: me }],
+      },
+    },
+    { $sort: { createdAt: -1 } },
+    {
+      $addFields: {
+        otherUser: { $cond: [{ $eq: ['$sender', me] }, '$recipient', '$sender'] },
+      },
+    },
+    {
+      $group: {
+        _id: '$otherUser',
+        lastMessage: { $first: '$$ROOT' },
+        unreadCount: {
+          $sum: {
+            $cond: [
+              {
+                $and: [
+                  { $eq: ['$recipient', me] },
+                  { $eq: [{ $size: { $filter: { input: '$readBy', as: 'r', cond: { $eq: ['$$r.user', me] } } } }, 0] },
+                ],
+              },
+              1,
+              0,
+            ],
+          },
+        },
+      },
+    },
+    { $sort: { 'lastMessage.createdAt': -1 } },
+  ]);
+
+  await Message.populate(results, [
+    { path: '_id', select: 'email', model: 'User' },
+    { path: 'lastMessage.sender', select: 'email', model: 'User' },
+  ]);
+
+  return results.map((r) => ({
+    user: r._id,
+    unreadCount: r.unreadCount,
+    lastMessage: {
+      id: r.lastMessage._id,
+      sender: r.lastMessage.sender,
+      conversationType: r.lastMessage.conversationType,
+      recipient: r.lastMessage.recipient,
+      department: r.lastMessage.department,
+      content: r.lastMessage.content,
+      readBy: r.lastMessage.readBy,
+      createdAt: r.lastMessage.createdAt,
+    },
+  }));
 }
 
 export async function markMessageRead(id: string, userId: string): Promise<IMessage> {

@@ -3,7 +3,9 @@ import { Server as SocketIOServer, Socket } from 'socket.io';
 import { env } from '@config/env';
 import { logger } from '@utils/logger';
 import { verifyAccessToken } from '@utils/jwt';
+import { User } from '@models/User.model';
 import { registerMessageHandlers } from './messageHandlers';
+import { markOnline, markOffline } from './presence';
 
 let io: SocketIOServer | undefined;
 
@@ -27,13 +29,20 @@ export function initializeSocket(httpServer: HttpServer): SocketIOServer {
     },
   });
 
-  io.use((socket: AuthenticatedSocket, next) => {
+  io.use(async (socket: AuthenticatedSocket, next) => {
     const token = socket.handshake.auth?.token as string | undefined;
     if (!token) {
       return next(new Error('Authentication token missing'));
     }
     try {
       const payload = verifyAccessToken(token);
+      // A socket outlives the token that opened it, so check the account is
+      // still live here rather than trusting the signature alone — otherwise a
+      // deactivated user keeps receiving real-time data until they disconnect.
+      const user = await User.findById(payload.sub).select('_id isActive');
+      if (!user || !user.isActive) {
+        return next(new Error('Account is inactive or no longer exists'));
+      }
       socket.userId = payload.sub;
       next();
     } catch {
@@ -45,6 +54,7 @@ export function initializeSocket(httpServer: HttpServer): SocketIOServer {
     logger.debug(`Socket connected: ${socket.id} (user ${socket.userId})`);
     if (socket.userId) {
       socket.join(userRoom(socket.userId));
+      markOnline(io as SocketIOServer, socket.userId);
     }
 
     socket.on('department:join', (departmentId: string) => {
@@ -59,6 +69,7 @@ export function initializeSocket(httpServer: HttpServer): SocketIOServer {
 
     socket.on('disconnect', () => {
       logger.debug(`Socket disconnected: ${socket.id}`);
+      if (socket.userId) markOffline(io as SocketIOServer, socket.userId);
     });
   });
 

@@ -23,6 +23,8 @@ router.post(
   messageController.sendMessage
 );
 
+router.get('/conversations', messageController.getDirectInbox);
+
 router.get(
   '/direct/:userId',
   validateRequest({ params: userIdParamSchema, query: messageQuerySchema }),

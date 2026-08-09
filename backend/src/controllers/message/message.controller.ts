@@ -12,6 +12,12 @@ export const sendMessage = asyncHandler(async (req: Request, res: Response) => {
   sendSuccess(res, 201, 'Message sent', message);
 });
 
+export const getDirectInbox = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) throw ApiError.unauthorized('Authentication required');
+  const inbox = await messageService.getDirectInbox(req.user.id);
+  sendSuccess(res, 200, 'Inbox retrieved', inbox);
+});
+
 export const getDirectConversation = asyncHandler(async (req: Request, res: Response) => {
   if (!req.user) throw ApiError.unauthorized('Authentication required');
   const pagination = getPaginationParams(req);
