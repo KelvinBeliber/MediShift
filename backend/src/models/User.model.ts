@@ -3,7 +3,14 @@ import bcrypt from 'bcryptjs';
 import { schemaOptions } from './shared/schemaOptions';
 
 export interface IRefreshTokenRecord {
+  /** The rotating token id — a new one is minted on every refresh. */
   token: string;
+  /**
+   * The login session this token belongs to. Rotation preserves it, so a single
+   * sign-out (or a detected replay) can revoke the whole family rather than just
+   * the one token the client happened to present.
+   */
+  sessionId: string;
   createdAt: Date;
   expiresAt: Date;
   userAgent?: string;
@@ -31,6 +38,7 @@ export interface IUser extends Document {
 const refreshTokenSchema = new Schema<IRefreshTokenRecord>(
   {
     token: { type: String, required: true },
+    sessionId: { type: String, required: true },
     createdAt: { type: Date, default: Date.now },
     expiresAt: { type: Date, required: true },
     userAgent: { type: String },

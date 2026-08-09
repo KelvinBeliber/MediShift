@@ -6,12 +6,20 @@ import { User } from '@models/User.model';
 import { Role } from '@models/Role.model';
 import { IPermission } from '@models/Permission.model';
 
+/**
+ * Bearer header only.
+ *
+ * An `accessToken` cookie was also accepted here, which would have made every
+ * state-changing endpoint ambiently authenticated by the browser and therefore
+ * CSRF-able (there is no CSRF token in this API). Nothing ever set that cookie,
+ * so requiring the header costs nothing and closes the hole permanently.
+ */
 function extractToken(req: Request): string | undefined {
   const header = req.headers.authorization;
   if (header?.startsWith('Bearer ')) {
     return header.slice('Bearer '.length);
   }
-  return req.cookies?.accessToken;
+  return undefined;
 }
 
 export const authenticate = asyncHandler(async (req: Request, _res: Response, next: NextFunction) => {

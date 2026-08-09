@@ -2,7 +2,7 @@ import { Router, RequestHandler } from 'express';
 import rateLimit from 'express-rate-limit';
 import * as authController from '@controllers/auth/auth.controller';
 import { validateRequest } from '@middleware/validateRequest';
-import { authenticate } from '@middleware/authenticate';
+import { authenticate, optionalAuthenticate } from '@middleware/authenticate';
 import { env } from '@config/env';
 import {
   registerSchema,
@@ -32,7 +32,12 @@ const authLimiter: RequestHandler = env.isTest
 router.post('/register', authLimiter, validateRequest({ body: registerSchema }), authController.register);
 router.post('/login', authLimiter, validateRequest({ body: loginSchema }), authController.login);
 router.post('/refresh', validateRequest({ body: refreshSchema }), authController.refresh);
-router.post('/logout', authenticate, authController.logout);
+// Not `authenticate`: sign-out must succeed even after the 15-minute access
+// token has expired, otherwise the session it was meant to revoke survives.
+// The refresh cookie is the credential; `optionalAuthenticate` only enriches
+// the request so a caller with a valid access token but no usable cookie can
+// still be signed out.
+router.post('/logout', optionalAuthenticate, authController.logout);
 router.post(
   '/forgot-password',
   authLimiter,

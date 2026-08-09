@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 import { User, IUser } from '@models/User.model';
 import { Role } from '@models/Role.model';
 import { Employee } from '@models/Employee.model';
@@ -12,6 +13,9 @@ import { env } from '@config/env';
 
 const EMAIL_VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
 const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000;
+
+/** A real bcrypt hash of a value nobody can supply — see `login()`. */
+const DUMMY_PASSWORD_HASH = '$2b$12$C6UzMDM.H6dfI/f/IKcEeO.qYyG9zZ3Ip5J8y1YB0kqhFqFqYyPzS';
 
 function parseExpiresInToMs(expiresIn: string): number {
   const match = /^(\d+)([smhd])$/.exec(expiresIn);
@@ -34,7 +38,9 @@ interface RegisterInput {
   employeeId?: string;
 }
 
-async function issueTokenPair(user: IUser, meta: RequestMeta) {
+async function issueTokenPair(user: IUser, meta: RequestMeta, existingSessionId?: string) {
+  const sessionId = existingSessionId ?? crypto.randomUUID();
+
   const role = await Role.findById(user.role);
   if (!role) {
     throw ApiError.internal('User role could not be resolved');
@@ -43,7 +49,7 @@ async function issueTokenPair(user: IUser, meta: RequestMeta) {
   const userId = String(user._id);
   const accessToken = signAccessToken({ sub: userId, role: role.name });
   const tokenId = crypto.randomUUID();
-  const refreshToken = signRefreshToken({ sub: userId, tokenId });
+  const refreshToken = signRefreshToken({ sub: userId, tokenId, sessionId });
 
   const expiresAt = new Date(Date.now() + parseExpiresInToMs(env.jwt.refreshExpiresIn));
 
@@ -59,6 +65,7 @@ async function issueTokenPair(user: IUser, meta: RequestMeta) {
       $push: {
         refreshTokens: {
           token: tokenId,
+          sessionId,
           createdAt: new Date(),
           expiresAt,
           userAgent: meta.userAgent,
@@ -69,6 +76,11 @@ async function issueTokenPair(user: IUser, meta: RequestMeta) {
   );
 
   return { accessToken, refreshToken };
+}
+
+/** Drops every refresh token for a user — used wherever credentials change. */
+async function revokeAllSessions(userId: unknown): Promise<void> {
+  await User.updateOne({ _id: userId }, { $set: { refreshTokens: [] } });
 }
 
 export async function register(input: RegisterInput) {
@@ -126,7 +138,15 @@ export async function register(input: RegisterInput) {
 
 export async function login(email: string, password: string, meta: RequestMeta) {
   const user = await User.findOne({ email }).select('+password');
-  if (!user || !(await user.comparePassword(password))) {
+  if (!user) {
+    // Burn a comparable amount of time on a dummy hash. Returning early here
+    // would make "no such account" measurably faster than "wrong password",
+    // which is a free user-enumeration oracle on top of an endpoint that
+    // deliberately returns an identical message for both.
+    await bcrypt.compare(password, DUMMY_PASSWORD_HASH);
+    throw ApiError.unauthorized('Invalid email or password');
+  }
+  if (!(await user.comparePassword(password))) {
     throw ApiError.unauthorized('Invalid email or password');
   }
   if (!user.isActive) {
@@ -167,25 +187,52 @@ export async function refreshTokens(refreshTokenRaw: string, meta: RequestMeta) 
 
   const tokenRecord = user.refreshTokens.find((t) => t.token === payload.tokenId);
   if (!tokenRecord || tokenRecord.expiresAt < new Date()) {
-    // Possible token reuse/replay — revoke all sessions defensively.
-    await User.updateOne({ _id: user._id }, { $set: { refreshTokens: [] } });
+    // A signature-valid token that is no longer on file means it was already
+    // rotated away (or revoked) and is now being replayed — assume theft and
+    // revoke every session, not just this family.
+    await revokeAllSessions(user._id);
     throw ApiError.unauthorized('Refresh token is invalid or has been revoked');
   }
 
+  // Rotate within the same family so a later sign-out can still reach this
+  // session, whichever generation of the token the client ends up holding.
   await User.updateOne({ _id: user._id }, { $pull: { refreshTokens: { token: payload.tokenId } } });
 
-  return issueTokenPair(user, meta);
+  return issueTokenPair(user, meta, tokenRecord.sessionId);
 }
 
-export async function logout(userId: string, refreshTokenRaw?: string): Promise<void> {
-  if (!refreshTokenRaw) {
-    return;
+/**
+ * Revoke the session a refresh token belongs to.
+ *
+ * Deliberately keyed off the *refresh token* rather than the caller's access
+ * token: sign-out has to work when the access token has already expired, and it
+ * must revoke server-side state rather than trusting the client to forget. The
+ * whole session family is dropped, so a rotation that raced the sign-out (a
+ * background 401 refreshing at the same moment) cannot leave a live token
+ * behind. Always resolves — a caller with nothing to revoke is a no-op, so the
+ * endpoint never doubles as a probe for whether a session exists.
+ */
+export async function logout(refreshTokenRaw?: string, userId?: string): Promise<void> {
+  if (refreshTokenRaw) {
+    try {
+      const payload = verifyRefreshToken(refreshTokenRaw);
+      await User.updateOne(
+        { _id: payload.sub },
+        { $pull: { refreshTokens: { sessionId: payload.sessionId } } }
+      );
+      return;
+    } catch {
+      // Fall through: an expired or malformed cookie shouldn't stop us from
+      // cleaning up on behalf of an authenticated caller.
+    }
   }
-  try {
-    const payload = verifyRefreshToken(refreshTokenRaw);
-    await User.updateOne({ _id: userId }, { $pull: { refreshTokens: { token: payload.tokenId } } });
-  } catch {
-    // token already invalid/expired — nothing to revoke
+
+  // No usable refresh token. If the caller still holds a valid access token we
+  // cannot tell which session it belongs to (access tokens carry no session
+  // id), so drop them all rather than leave the user signed in after they
+  // explicitly asked to leave.
+  if (userId) {
+    await revokeAllSessions(userId);
   }
 }
 
@@ -223,8 +270,13 @@ export async function resetPassword(rawToken: string, newPassword: string): Prom
   user.password = newPassword;
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
-  user.refreshTokens = [];
   await user.save();
+
+  // `refreshTokens` is `select: false` and was not loaded above, so assigning it
+  // on the document would not reliably persist. Whoever reset this password may
+  // be locking out whoever stole the account — every existing session has to go,
+  // and it has to go for certain.
+  await revokeAllSessions(user._id);
 }
 
 export async function changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
@@ -239,10 +291,11 @@ export async function changePassword(userId: string, currentPassword: string, ne
   }
 
   user.password = newPassword;
-  // Invalidate every other session — the same defensive posture as a full
-  // password reset, since a compromised session shouldn't survive a password change.
-  user.refreshTokens = [];
   await user.save();
+
+  // Invalidate every session — the same defensive posture as a full password
+  // reset, since a compromised session shouldn't survive a password change.
+  await revokeAllSessions(user._id);
 }
 
 export async function resendVerification(email: string): Promise<void> {

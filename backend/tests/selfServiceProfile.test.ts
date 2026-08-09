@@ -67,19 +67,23 @@ describe('Self-service profile & password', () => {
   it('revokes a refresh token that was issued before the password change', async () => {
     const { user, accessToken } = await makeLinkedEmployeeUser();
 
-    // Log in for real to obtain a genuine, valid refresh token.
+    // Log in for real to obtain a genuine, valid refresh cookie.
     const login = await request(app)
       .post('/api/v1/auth/login')
       .send({ email: user.email, password: 'Password123!' });
-    const realRefreshToken = login.body.data.refreshToken;
-    expect(realRefreshToken).toBeTruthy();
+    const cookie = ((login.headers['set-cookie'] ?? []) as unknown as string[]).find((c) =>
+      c.startsWith('refreshToken=')
+    );
+    expect(cookie).toBeTruthy();
 
     await request(app)
       .post('/api/v1/auth/change-password')
       .set(authHeader(accessToken))
       .send({ currentPassword: 'Password123!', newPassword: 'NewPassword456!' });
 
-    const refreshAttempt = await request(app).post('/api/v1/auth/refresh').send({ refreshToken: realRefreshToken });
+    const refreshAttempt = await request(app)
+      .post('/api/v1/auth/refresh')
+      .set('Cookie', cookie as string);
     expect(refreshAttempt.status).toBe(401);
   });
 });

@@ -33,3 +33,12 @@ export const attendanceSummaryQuerySchema = z.object({
   dateFrom: z.coerce.date(),
   dateTo: z.coerce.date(),
 });
+
+/** No `employee` field — `/attendance/mine` always scopes to the caller, so there is nothing to filter by. */
+export const attendanceMineQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  sort: z.string().optional(),
+  dateFrom: z.coerce.date().optional(),
+  dateTo: z.coerce.date().optional(),
+});

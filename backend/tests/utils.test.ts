@@ -14,10 +14,20 @@ describe('jwt utils', () => {
   });
 
   it('round-trips a refresh token', () => {
-    const token = signRefreshToken({ sub: 'user1', tokenId: 'abc123' });
+    const token = signRefreshToken({ sub: 'user1', tokenId: 'abc123', sessionId: 'sess1' });
     const payload = verifyRefreshToken(token);
     expect(payload.sub).toBe('user1');
     expect(payload.tokenId).toBe('abc123');
+    expect(payload.sessionId).toBe('sess1');
+  });
+
+  it('rejects a token signed with an algorithm other than HS256', () => {
+    // `alg: none` is the classic forgery: no signature to check, so verification
+    // must refuse the algorithm outright rather than trust the header.
+    const forged = jwt.sign({ sub: 'user1', role: 'admin', typ: 'access' }, '', {
+      algorithm: 'none',
+    });
+    expect(() => verifyAccessToken(forged)).toThrow();
   });
 
   it('rejects an access token verified with the wrong secret (tampering/cross-use)', () => {

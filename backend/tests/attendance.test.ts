@@ -243,6 +243,36 @@ describe('Attendance API', () => {
     });
   });
 
+  describe('GET /mine (self-scoped, no attendance:view required)', () => {
+    it('returns the caller\'s own records without attendance:view', async () => {
+      const { accessToken } = await makeLinkedEmployeeUser();
+      await request(app).post('/api/v1/attendance/clock-in').set(authHeader(accessToken)).send({ method: 'manual' });
+
+      const res = await request(app).get('/api/v1/attendance/mine').set(authHeader(accessToken));
+      expect(res.status).toBe(200);
+      expect(res.body.data).toHaveLength(1);
+      expect(res.body.data[0].status).toBe('present');
+    });
+
+    it('never returns another employee\'s records, even if an employee filter is somehow supplied', async () => {
+      const { accessToken: employeeToken } = await makeLinkedEmployeeUser();
+      const { accessToken: otherToken, employee: other } = await makeLinkedEmployeeUser();
+      await request(app).post('/api/v1/attendance/clock-in').set(authHeader(otherToken)).send({ method: 'manual' });
+
+      const res = await request(app)
+        .get(`/api/v1/attendance/mine?employee=${other.id}`)
+        .set(authHeader(employeeToken));
+      expect(res.status).toBe(200);
+      expect(res.body.data).toHaveLength(0);
+    });
+
+    it('rejects a caller with no linked employee profile', async () => {
+      const { accessToken } = await createUserWithRole('hr_manager');
+      const res = await request(app).get('/api/v1/attendance/mine').set(authHeader(accessToken));
+      expect(res.status).toBe(400);
+    });
+  });
+
   describe('mark-absentees', () => {
     useFixedClock();
 

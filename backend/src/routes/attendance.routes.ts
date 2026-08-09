@@ -10,6 +10,7 @@ import {
   attendanceIdParamSchema,
   attendanceQuerySchema,
   attendanceSummaryQuerySchema,
+  attendanceMineQuerySchema,
 } from '@validators/attendance.validator';
 
 const router = Router();
@@ -24,6 +25,17 @@ router.post('/break-start', selfOrManage, validateRequest({ body: breakEventSche
 router.post('/break-end', selfOrManage, validateRequest({ body: breakEventSchema }), attendanceController.breakEnd);
 
 router.get('/today', selfOrManage, attendanceController.getToday);
+
+/**
+ * The caller's own attendance history — always scoped to `req.user.employeeId`,
+ * never to a query param. Unlike `/`  and `/summary` below, this needs no
+ * `attendance:view`: it mirrors `GET /leave`'s self-scope pattern (an account
+ * can always read its own records), so `employee` and `shift_coordinator` —
+ * neither of whom hold `attendance:view` — can build real streak/hours-worked
+ * figures for themselves without a broader grant. Must be registered before
+ * `/:id` or `/mine` would be parsed as an object-id param and 400.
+ */
+router.get('/mine', validateRequest({ query: attendanceMineQuerySchema }), attendanceController.getMyAttendance);
 
 router.get(
   '/summary',

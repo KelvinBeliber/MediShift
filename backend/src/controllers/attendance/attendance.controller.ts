@@ -74,6 +74,24 @@ export const getAttendanceList = asyncHandler(async (req: Request, res: Response
   sendSuccess(res, 200, 'Attendance records retrieved', docs, meta);
 });
 
+export const getMyAttendance = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) throw ApiError.unauthorized('Authentication required');
+  if (!req.user.employeeId) throw ApiError.badRequest('No employee profile is linked to this account');
+
+  const pagination = getPaginationParams(req);
+  const { dateFrom, dateTo } = (req.validatedQuery ?? {}) as Record<string, string | undefined>;
+
+  const { docs, meta } = await attendanceService.listAttendance(
+    {
+      employee: req.user.employeeId,
+      dateFrom: dateFrom ? new Date(dateFrom) : undefined,
+      dateTo: dateTo ? new Date(dateTo) : undefined,
+    },
+    pagination
+  );
+  sendSuccess(res, 200, 'Your attendance records retrieved', docs, meta);
+});
+
 export const getAttendanceRecord = asyncHandler(async (req: Request, res: Response) => {
   const attendance = await attendanceService.getAttendance(paramId(req.params.id));
   sendSuccess(res, 200, 'Attendance record retrieved', attendance);
