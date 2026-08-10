@@ -50,7 +50,7 @@ export function Stepper({
                   compact ? 'size-3' : 'size-8',
                   isDone && 'border-primary bg-primary text-primary-foreground',
                   isActive && isWarning && 'border-amber-500 bg-amber-500 text-white',
-                  isActive && !isWarning && 'border-primary bg-primary/10 text-primary',
+                  isActive && !isWarning && 'border-primary bg-primary text-primary-foreground',
                   !isDone && !isActive && 'border-muted-foreground/30 text-muted-foreground/50',
                 )}
               >

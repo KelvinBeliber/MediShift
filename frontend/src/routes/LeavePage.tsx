@@ -71,7 +71,7 @@ const LEAVE_STEPS: StepperStep[] = [
 function leaveStepIndex(status: LeaveRequest['status']): number | null {
   if (status === 'pending') return 0
   if (status === 'department_approved') return 1
-  if (status === 'approved') return 2
+  if (status === 'approved') return LEAVE_STEPS.length
   return null
 }
 
