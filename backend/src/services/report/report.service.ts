@@ -152,7 +152,14 @@ export async function dashboardSummary(department?: string) {
   const attendanceMatch: Record<string, unknown> = { date: { $gte: thirtyDaysAgo, $lte: now } };
   if (employeeIds) attendanceMatch.employee = { $in: employeeIds };
 
-  const [attendanceStats, coverageUpcoming] = await Promise.all([
+  const leaveMatch: Record<string, unknown> = {
+    status: 'approved',
+    startDate: { $lte: now },
+    endDate: { $gte: thirtyDaysAgo },
+  };
+  if (employeeIds) leaveMatch.employee = { $in: employeeIds };
+
+  const [attendanceStats, coverageUpcoming, approvedLeaveDays] = await Promise.all([
     Attendance.aggregate([
       { $match: attendanceMatch },
       {
@@ -162,24 +169,52 @@ export async function dashboardSummary(department?: string) {
           present: { $sum: { $cond: [{ $eq: ['$status', 'present'] }, 1, 0] } },
           late: { $sum: { $cond: [{ $eq: ['$status', 'late'] }, 1, 0] } },
           absent: { $sum: { $cond: [{ $eq: ['$status', 'absent'] }, 1, 0] } },
-          leave: { $sum: { $cond: [{ $eq: ['$status', 'leave'] }, 1, 0] } },
           overtimeHours: { $sum: { $ifNull: ['$overtimeHours', 0] } },
         },
       },
     ]),
     shiftCoverage(now, fourteenDaysAhead, department),
+    LeaveRequest.aggregate([
+      { $match: leaveMatch },
+      {
+        $project: {
+          overlapDays: {
+            $add: [
+              {
+                $divide: [
+                  {
+                    $subtract: [
+                      { $min: ['$endDate', now] },
+                      { $max: ['$startDate', thirtyDaysAgo] },
+                    ],
+                  },
+                  1000 * 60 * 60 * 24,
+                ],
+              },
+              1,
+            ],
+          },
+        },
+      },
+      { $group: { _id: null, totalDays: { $sum: '$overlapDays' } } },
+    ]),
   ]);
 
-  const stats = attendanceStats[0] ?? { total: 0, present: 0, late: 0, absent: 0, leave: 0, overtimeHours: 0 };
+  const stats = attendanceStats[0] ?? { total: 0, present: 0, late: 0, absent: 0, overtimeHours: 0 };
   const totalRequired = coverageUpcoming.reduce((sum, r) => sum + r.requiredStaff, 0);
   const totalAssigned = coverageUpcoming.reduce((sum, r) => sum + r.assignedStaff, 0);
   const openShifts = coverageUpcoming.reduce((sum, r) => sum + Math.max(0, r.requiredStaff - r.assignedStaff), 0);
 
+  const windowDays = 30;
+  const employeeCount = employeeIds ? employeeIds.length : await Employee.countDocuments({ status: 'active' });
+  const totalPossibleDays = employeeCount * windowDays;
+  const leaveDays = approvedLeaveDays[0]?.totalDays ?? 0;
+
   return {
-    windowDays: 30,
+    windowDays,
     attendancePercent: stats.total > 0 ? Math.round(((stats.present + stats.late) / stats.total) * 10000) / 100 : 0,
     latePercent: stats.total > 0 ? Math.round((stats.late / stats.total) * 10000) / 100 : 0,
-    leavePercent: stats.total > 0 ? Math.round((stats.leave / stats.total) * 10000) / 100 : 0,
+    leavePercent: totalPossibleDays > 0 ? Math.round((leaveDays / totalPossibleDays) * 10000) / 100 : 0,
     totalOvertimeHours: Math.round(stats.overtimeHours * 100) / 100,
     upcomingCoveragePercent: totalRequired > 0 ? Math.round((totalAssigned / totalRequired) * 10000) / 100 : 100,
     openShiftsNext14Days: openShifts,
