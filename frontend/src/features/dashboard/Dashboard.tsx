@@ -68,8 +68,10 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
+import { Link } from 'react-router'
 import { motion } from 'motion/react'
 import {
+  ArrowRightIcon,
   CalendarDaysIcon,
   ClockIcon,
   ExclamationCircleIcon,
@@ -84,6 +86,8 @@ import {
   SectionHeading,
 } from '@/components/dashboard-primitives/Panel'
 import { StatCard, StatCardSkeleton } from '@/components/dashboard-primitives/StatCard'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { useCurrentUser } from '@/features/auth/usePermission'
@@ -94,7 +98,7 @@ import { AnalyticsPanel } from './AnalyticsPanel'
 import { EmployeeSections } from './EmployeeSections'
 import { ManagerSections, PendingApprovals } from './ManagerSections'
 import { useDashboardQueries } from './queries'
-import type { AttendanceTrendPoint } from './types'
+import type { AttendanceTrendPoint, ShiftCoveragePoint } from './types'
 
 /** First name only — a dashboard greeting that uses a surname reads as a form letter. */
 function firstNameOf(name: string): string {
@@ -148,19 +152,43 @@ function SectionError({ error, label }: { error: unknown; label: string }) {
   )
 }
 
-/** The coverage dial, in its own panel beside the analytics chart. */
+/**
+ * The coverage dial, in its own panel beside the analytics chart.
+ *
+ * The ring alone left a panel that was mostly ground — a dial and a caption in
+ * a sea of padding next to the analytics chart's tabs and legend. The
+ * required/assigned breakdown below the ring is the arithmetic the ring is
+ * drawn from, made legible on its own; the status badge and the link to
+ * `/schedules` (only shown when there's somewhere to go) give the panel the
+ * same "figure, then what to do about it" shape as `StaffingWarnings`, its
+ * detail-view counterpart in "Needs attention" above.
+ */
 function CoveragePanel({
   percent,
   openShifts,
+  coverage,
   isLoading,
 }: {
   percent: number
   openShifts: number
+  coverage: ShiftCoveragePoint[]
   isLoading: boolean
 }) {
+  const totalRequired = coverage.reduce((sum, day) => sum + day.requiredStaff, 0)
+  const totalAssigned = coverage.reduce((sum, day) => sum + day.assignedStaff, 0)
+  const fullyStaffed = openShifts === 0
+
   return (
     <Panel className="flex flex-col p-5 sm:p-6">
-      <PanelLabel>Upcoming staffing</PanelLabel>
+      <div className="flex items-center justify-between gap-3">
+        <PanelLabel>Upcoming staffing</PanelLabel>
+        {!isLoading && (
+          <Badge variant={fullyStaffed ? 'success' : 'destructive'}>
+            {fullyStaffed ? 'Fully staffed' : `${openShifts} open`}
+          </Badge>
+        )}
+      </div>
+
       <div className="flex flex-1 items-center justify-center py-3">
         {isLoading ? (
           <div className="flex flex-col items-center">
@@ -171,6 +199,35 @@ function CoveragePanel({
           <CoverageRing percent={percent} openShifts={openShifts} size={168} />
         )}
       </div>
+
+      {!isLoading && (
+        <>
+          <Separator />
+          <div className="grid grid-cols-2 divide-x pt-4">
+            <div className="text-center">
+              <p className="text-xl font-bold tracking-[-0.021em] tabular-nums">{totalAssigned}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Assigned</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xl font-bold tracking-[-0.021em] tabular-nums">{totalRequired}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Required</p>
+            </div>
+          </div>
+
+          {!fullyStaffed && (
+            <Link
+              to="/schedules"
+              className="group mt-4 flex items-center justify-center gap-1 text-sm font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Open schedules
+              <ArrowRightIcon
+                className="size-3.5 transition-transform duration-150 group-hover:translate-x-0.5"
+                aria-hidden="true"
+              />
+            </Link>
+          )}
+        </>
+      )}
     </Panel>
   )
 }
@@ -360,7 +417,8 @@ export function Dashboard() {
               <CoveragePanel
                 percent={summaryData?.upcomingCoveragePercent ?? 0}
                 openShifts={summaryData?.openShiftsNext14Days ?? 0}
-                isLoading={summary.isPending}
+                coverage={coverage.data ?? []}
+                isLoading={summary.isPending || coverage.isPending}
               />
             </div>
           </section>
