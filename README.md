@@ -218,10 +218,6 @@ cd frontend && npm test
 cd scheduling-service && pytest
 ```
 
-## Contributing
-
-Commits in this repository must be authored under a real contributor's git identity — do not attribute commits to Claude or any other AI assistant, even when AI tooling was used to help write the change.
-
 ## Future Enhancements
 
 Multi-hospital support, SaaS subscriptions, Google Calendar integration, SMS notifications, face recognition attendance, mobile PWA, offline attendance sync, AI staffing forecasts, predictive staffing recommendations, and a voice-enabled AI assistant.
